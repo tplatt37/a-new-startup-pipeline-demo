@@ -39,12 +39,14 @@ echo "Deleting ($STACK_NAME) ..."
 aws cloudformation delete-stack --stack-name $STACK_NAME
 aws cloudformation wait stack-delete-complete --stack-name $STACK_NAME 
 
-# After that, we don't have to wait on these, just delete them... in parallel.
-STACK_NAME=a-new-startup-build-projects
+#Also this one...
+STACK_NAME=a-new-startup-backend
 echo "Deleting ($STACK_NAME) ..."
 aws cloudformation delete-stack --stack-name $STACK_NAME
+aws cloudformation wait stack-delete-complete --stack-name $STACK_NAME 
 
-STACK_NAME=a-new-startup-backend
+# After that, we don't have to wait on these, just delete them... in parallel.
+STACK_NAME=a-new-startup-build-projects
 echo "Deleting ($STACK_NAME) ..."
 aws cloudformation delete-stack --stack-name $STACK_NAME
 

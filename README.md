@@ -65,6 +65,7 @@ git clone $(aws codecommit get-repository --repository-name "a-new-startup" --qu
 Modify some of the visible text in src/views/index.ejs (for an easy and visible change)
 
 git commit -a -m "updated version number"
+
 git push
 
 The pipeline should then kick off with the latest commit.

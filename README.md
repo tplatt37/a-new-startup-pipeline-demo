@@ -20,18 +20,24 @@ This set of templates uses many static/fixed resource names (stack names, repo n
 This means you can only install it ONCE per account (stack will fail with naming conflicts otherwiwse).
 If you need multiple installs, use different accounts!
 
+This repo is meant for demos to students - so we keep it as simple (as possible).
+
 # Installation
 
 Run the following command, and pass the S3 Bucket Name as the first argument, and a comma delimited list of the 2 PUBLIC subnets:
 
 ./00-install.sh "BUCKET_NAME_HERE" "subnet-1234568999,subnet-8298392925"
 
-Alternatively, you can run the individual files (This is helpful after the initial install if you are making updates)
+Alternatively, you can run the individual files (This is helpful after the initial install if you are making updates and only want one stack to be updated.)
 
 ./01-repo.sh "BUCKET_NAME_HERE"
+
 ./02-backend.sh
+
 ./03-compute.sh "subnet-1234568999,subnet-8298392925"
+
 ./04-build-projects.sh
+
 ./05-pipeline.sh
 
 # What's Next?
@@ -71,7 +77,7 @@ This stage uses a containerized python script with Selenium to perform a UI leve
 
 Enable this stage by running:
 
-./05-add-test-stage.sh
+./06-add-test-stage.sh
 
 Please note that this version of the pipeline will take longer to run, and it will be more complicated.
 

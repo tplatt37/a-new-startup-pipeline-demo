@@ -20,8 +20,8 @@
 #
 
 # This is the application code.
-cd ../a-new-startup && zip -r --exclude=*.git/* ../a-new-startup-pipeline/a-new-startup.zip ./* .[^.]* && cd ../a-new-startup-pipeline
+cd ../a-new-startup && zip -r --exclude=*.git/* ../a-new-startup-pipeline-demo/a-new-startup.zip ./* .[^.]* && cd ../a-new-startup-pipeline-demo
 
 # This is the testing code, which lives in a different repo
-cd ../a-new-startup-testing-image && zip -r --exclude=*.git/* --exclude=*.zip --exclude=*.sh ../a-new-startup-pipeline/a-new-startup-ui-tests.zip ./* .[^.]* && cd ../a-new-startup-pipeline
+cd ../a-new-startup-testing-image && zip -r --exclude=*.git/* --exclude=*.zip --exclude=*.sh ../a-new-startup-pipeline-demo/a-new-startup-ui-tests.zip ./* .[^.]* && cd ../a-new-startup-pipeline-demo
 

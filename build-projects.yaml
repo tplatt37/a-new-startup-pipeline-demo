@@ -1,0 +1,459 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: A-New-Startup - Sets up the CI/CD Pipeline
+
+Resources:
+  
+#
+#  ____  ____ 
+# / ___)( __ \
+# \___ \ (__ (
+# (____/(____/
+#
+
+  # CodePipeline will use this for Artifacts
+  ArtifactStoreBucket:
+    Type: 'AWS::S3::Bucket'
+    Properties:
+      BucketEncryption:
+        ServerSideEncryptionConfiguration:
+          - ServerSideEncryptionByDefault:
+              SSEAlgorithm: 'AES256'
+
+#
+#  ___  __  ____  ____  ____  _  _  __  __    ____ 
+# / __)/  \(    \(  __)(  _ \/ )( \(  )(  )  (    \
+#( (__(  O )) D ( ) _)  ) _ () \/ ( )( / (_/\ ) D (
+# \___)\__/(____/(____)(____/\____/(__)\____/(____/
+#
+
+  # This project builds the application code (NodeJS) 
+  BuildProject:
+    Type: AWS::CodeBuild::Project
+    Properties:
+        Name: a-new-startup-build
+        Artifacts:
+            Type: CODEPIPELINE
+        Environment:
+            ComputeType: BUILD_GENERAL1_SMALL
+            Image: aws/codebuild/amazonlinux2-x86_64-standard:3.0
+            PrivilegedMode: false
+            Type: LINUX_CONTAINER
+            EnvironmentVariables:
+            - Name: BUCKET_NAME
+              Type: PLAINTEXT
+              Value: !Ref ArtifactStoreBucket
+        ServiceRole:
+            Fn::GetAtt:
+            - BuildRole
+            - Arn
+        Source:
+            # Assume buildspec.yaml is in the source root directory
+            Type: CODEPIPELINE
+
+  # This project is used to build a Container Image of the testing code (Python/Selenium)
+  TestImageBuildProject:
+    Type: AWS::CodeBuild::Project
+    Properties:
+        Name: a-new-startup-test-image-build
+        Artifacts:
+            Type: CODEPIPELINE
+        Cache:
+              Type: LOCAL
+              Modes:
+                - LOCAL_DOCKER_LAYER_CACHE
+        Environment:
+            ComputeType: BUILD_GENERAL1_SMALL
+            # NOTE: Using Ubuntu/4.0 image - Docker already installed
+            Image: aws/codebuild/standard:4.0
+            # Must be on for a container image build
+            PrivilegedMode: true
+            Type: LINUX_CONTAINER
+            EnvironmentVariables:
+            - Name: ACCOUNTID
+              Type: PLAINTEXT
+              Value:
+                Ref:
+                  AWS::AccountId
+            - Name: AWS_DEFAULT_REGION
+              Type: PLAINTEXT
+              Value:
+                Ref:
+                  AWS::Region
+        ServiceRole:
+            Fn::GetAtt:
+            - BuildRole
+            - Arn
+        Source:
+            BuildSpec: buildspec-build-image.yml
+            Type: CODEPIPELINE
+
+  # This project is used to run the tests (by running the testing container image)
+  RunTestsBuildProject:
+    Type: AWS::CodeBuild::Project
+    Properties:
+        Name: a-new-startup-run-tests
+        Artifacts:
+            Type: CODEPIPELINE
+        Cache:
+              Type: LOCAL
+              Modes:
+                - LOCAL_DOCKER_LAYER_CACHE
+        Environment:
+            ComputeType: BUILD_GENERAL1_SMALL
+            # NOTE: Using Ubuntu/4.0 image - Docker already installed
+            Image: aws/codebuild/standard:4.0
+            # Must be on for a container image build
+            PrivilegedMode: true
+            Type: LINUX_CONTAINER
+            EnvironmentVariables:
+            - Name: ACCOUNTID
+              Type: PLAINTEXT
+              Value:
+                Ref:
+                  AWS::AccountId
+            - Name: AWS_DEFAULT_REGION
+              Type: PLAINTEXT
+              Value:
+                Ref:
+                  AWS::Region
+        ServiceRole:
+            Fn::GetAtt:
+            - BuildRole
+            - Arn
+        Source:
+            BuildSpec: buildspec-to-test.yml
+            Type: CODEPIPELINE
+
+
+#   ___         _     ___           _          
+#  / __|___  __| |___|   \ ___ _ __| |___ _  _ 
+# | (__/ _ \/ _` / -_) |) / -_) '_ \ / _ \ || |
+#  \___\___/\__,_\___|___/\___| .__/_\___/\_, |
+#                             |_|         |__/ 
+
+  Application:
+    Type: AWS::CodeDeploy::Application
+    Properties:
+      ApplicationName: "a-new-startup"
+      ComputePlatform: Server
+
+  DeploymentGroup:
+    Type: AWS::CodeDeploy::DeploymentGroup
+    Properties:
+      ApplicationName: "a-new-startup"
+      AutoScalingGroups:
+      - "a-new-startup"
+      DeploymentConfigName: "CodeDeployDefault.OneAtATime"
+      # Don't change this.
+      # The code uses its DeploymentGroupName to figure out which environment it is (dev/qa/prod)
+      # and then retrieves the corresponding parameters (dev table, dev sns , etc.)
+      DeploymentGroupName: "dev"
+      DeploymentStyle: 
+        DeploymentOption: WITHOUT_TRAFFIC_CONTROL
+        DeploymentType: IN_PLACE
+      Ec2TagFilters:
+        - Key: deploymentgroup
+          Value: a-new-startup
+          Type: KEY_AND_VALUE
+      LoadBalancerInfo:
+        TargetGroupInfoList:
+          - Name: "a-new-startup"
+      ServiceRoleArn:
+        Fn::GetAtt:
+          - CodeDeployRole
+          - Arn
+
+
+#
+#  ___  __     __   _  _  ____  _  _   __  ____  ___  _  _ 
+# / __)(  )   /  \ / )( \(    \/ )( \ / _\(_  _)/ __)/ )( \
+#( (__ / (_/\(  O )) \/ ( ) D (\ /\ //    \ )( ( (__ ) __ (
+# \___)\____/ \__/ \____/(____/(_/\_)\_/\_/(__) \___)\_)(_/
+# 
+
+  AmazonCloudWatchEventRule:
+    Type: 'AWS::Events::Rule'
+    Properties:
+      EventPattern:
+        source:
+          - aws.codecommit
+        detail-type:
+          - CodeCommit Repository State Change
+        resources:
+          - !Join 
+            - ''
+            - - 'arn:aws:codecommit:'
+              - !Ref 'AWS::Region'
+              - ':'
+              - !Ref 'AWS::AccountId'
+              - ':'
+              - 'a-new-startup'
+        detail:
+          event:
+            - referenceCreated
+            - referenceUpdated
+          referenceType:
+            - branch
+          referenceName:
+            - main
+      Targets:
+        - Arn: !Join 
+            - ''
+            - - 'arn:aws:codepipeline:'
+              - !Ref 'AWS::Region'
+              - ':'
+              - !Ref 'AWS::AccountId'
+              - ':'
+              - 'a-new-startup'
+          RoleArn: !GetAtt 
+            - AmazonCloudWatchEventRole
+            - Arn
+          Id: codepipeline-AppPipeline
+
+            
+#  __   __   _  _ 
+# (  ) / _\ ( \/ )
+#  )( /    \/ \/ \
+# (__)\_/\_/\_)(_/
+#
+  AmazonCloudWatchEventRole:
+      Type: 'AWS::IAM::Role'
+      Properties:
+        AssumeRolePolicyDocument:
+          Version: 2012-10-17
+          Statement:
+            - Effect: Allow
+              Principal:
+                Service:
+                  - events.amazonaws.com
+              Action: 'sts:AssumeRole'
+        Path: /
+        Policies:
+          - PolicyName: cwe-pipeline-execution
+            PolicyDocument:
+              Version: 2012-10-17
+              Statement:
+                - Effect: Allow
+                  Action: 'codepipeline:StartPipelineExecution'
+                  Resource: !Join 
+                    - ''
+                    - - 'arn:aws:codepipeline:'
+                      - !Ref 'AWS::Region'
+                      - ':'
+                      - !Ref 'AWS::AccountId'
+                      - ':'
+                      - 'a-new-startup'
+
+  CodePipelineArtifactStoreBucketPolicy:
+    Type: 'AWS::S3::BucketPolicy'
+    Properties:
+      Bucket: !Ref ArtifactStoreBucket
+      PolicyDocument:
+        Version: 2012-10-17
+        Statement:
+          - Sid: DenyInsecureConnections
+            Effect: Deny
+            Principal: '*'
+            Action: 's3:*'
+            Resource: !Join 
+              - ''
+              - - !GetAtt 
+                  - ArtifactStoreBucket
+                  - Arn
+                - /*
+            Condition:
+              Bool:
+                'aws:SecureTransport': false
+                    
+  CodePipelineServiceRole:
+    Type: 'AWS::IAM::Role'
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: 2012-10-17
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service:
+                - codepipeline.amazonaws.com
+            Action: 'sts:AssumeRole'
+      Path: /
+      Policies:
+        - PolicyName: AWS-CodePipeline-Service-a-new-startup
+          PolicyDocument:
+            Version: 2012-10-17
+            Statement:
+              - Effect: Allow
+                Action:
+                  - 'codecommit:CancelUploadArchive'
+                  - 'codecommit:GetBranch'
+                  - 'codecommit:GetCommit'
+                  - 'codecommit:GetUploadArchiveStatus'
+                  - 'codecommit:UploadArchive'
+                Resource: '*'
+              - Effect: Allow
+                Action:
+                  - 'codedeploy:CreateDeployment'
+                  - 'codedeploy:GetApplicationRevision'
+                  - 'codedeploy:GetDeployment'
+                  - 'codedeploy:GetDeploymentConfig'
+                  - 'codedeploy:RegisterApplicationRevision'
+                Resource: '*'
+              - Effect: Allow
+                Action:
+                  - 'codebuild:BatchGetBuilds'
+                  - 'codebuild:StartBuild'
+                Resource: '*'
+              - Effect: Allow
+                Action:
+                  - 'devicefarm:ListProjects'
+                  - 'devicefarm:ListDevicePools'
+                  - 'devicefarm:GetRun'
+                  - 'devicefarm:GetUpload'
+                  - 'devicefarm:CreateUpload'
+                  - 'devicefarm:ScheduleRun'
+                Resource: '*'
+              - Effect: Allow
+                Action:
+                  - 'lambda:InvokeFunction'
+                  - 'lambda:ListFunctions'
+                Resource: '*'
+              - Effect: Allow
+                Action:
+                  - 'iam:PassRole'
+                Resource: '*'
+              - Effect: Allow
+                Action:
+                  - 'elasticbeanstalk:*'
+                  - 'ec2:*'
+                  - 'elasticloadbalancing:*'
+                  - 'autoscaling:*'
+                  - 'cloudwatch:*'
+                  - 's3:*'
+                  - 'sns:*'
+                  - 'cloudformation:*'
+                  - 'rds:*'
+                  - 'sqs:*'
+                  - 'ecs:*'
+                Resource: '*'
+
+
+  BuildRole:
+    Type: 'AWS::IAM::Role'
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: 2012-10-17
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service:
+                - codebuild.amazonaws.com
+            Action: 'sts:AssumeRole'
+      Path: /
+      Policies:
+        - PolicyName: CodeBuild-Role-a-new-startup
+          PolicyDocument:
+            Version: 2012-10-17
+            Statement:
+              - Effect: Allow
+                Action:
+                  - 'codebuild:*'
+                Resource: '*'
+              - Effect: Allow
+                Action:
+                  - 'lambda:InvokeFunction'
+                  - 'lambda:ListFunctions'
+                Resource: '*'
+              - Effect: Allow
+                Action:
+                  - 'iam:PassRole'
+                Resource: '*'
+                # ECR perms needed to build and push the testing container image
+              - Effect: Allow
+                Action:
+                  - 'ecr:BatchGetImage'
+                  - 'ecr:BatchCheckLayerAvailability'
+                  - 'ecr:CompleteLayerUpload'
+                  - 'ecr:GetDownloadUrlForLayer'
+                  - 'ecr:InitiateLayerUpload'
+                  - 'ecr:PutImage'
+                  - 'ecr:UploadLayerPart'
+                  - 'ecr:GetAuthorizationToken'
+                Resource: '*'
+                # Need to be able to retrieve Outputs from stacks...
+              - Effect: Allow
+                Action:
+                  - 'cloudformation:DescribeStacks'
+                Resource: '*'
+              - Effect: Allow
+                Action:
+                  - 'cloudwatch:*'
+                  - 'logs:CreateLogStream'
+                  - 'logs:CreateLogGroup'
+                  - 'logs:PutLogEvents'
+                  - 's3:*'
+                Resource: '*'
+                
+  CodeDeployRole:
+      Type: 'AWS::IAM::Role'
+      Properties:
+        AssumeRolePolicyDocument:
+          Version: 2012-10-17
+          Statement:
+            - Effect: Allow
+              Principal:
+                Service:
+                  - codedeploy.amazonaws.com
+              Action: 'sts:AssumeRole'
+        Path: /
+        Policies:
+          - PolicyName: codedeploy-role-a-new-startup
+            PolicyDocument:
+              Version: 2012-10-17
+              Statement:
+                - Effect: Allow
+                  Action: 'ec2:*'
+                  Resource: !Join 
+                    - ''
+                    - - '*'
+                - Effect: Allow
+                  Action: 'autoscaling:*'
+                  Resource: !Join 
+                    - ''
+                    - - '*'
+                    
+Outputs:
+  ArtifactStoreBucket:
+    Description: Where the build artifacts go.
+    Value: !Ref ArtifactStoreBucket
+    Export:
+      Name: a-new-startup-ArtifactStoreBucket
+  
+  BuildProject:
+    Value: !Ref BuildProject
+    Export:
+      Name: a-new-startup-BuildProject
+      
+  RunTestsBuildProject:    
+    Value: !Ref RunTestsBuildProject
+    Export:
+      Name: a-new-startup-RunTestsBuildProject
+      
+  TestImageBuildProject:
+    Value: !Ref TestImageBuildProject
+    Export:
+      Name: a-new-startup-TestImageBuildProject
+  
+  Application:
+    Value: !Ref Application
+    Export:
+      Name: a-new-startup-Application
+  
+  DeploymentGroup:
+    Value: !Ref DeploymentGroup
+    Export:
+      Name: a-new-startup-DeploymentGroup
+      
+  CodePipelineServiceRole:
+    Value: !GetAtt CodePipelineServiceRole.Arn
+    Export:
+      Name: a-new-startup-CodePipelineServiceRole

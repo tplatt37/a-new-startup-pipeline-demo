@@ -1,0 +1,176 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: "A-New-Startup - Sets up the DynamoDB database, SNS Topic, SQS Queue, SSM parameters and some IAM things for a-new-startup"
+
+Resources:
+
+  StartupSignupsTable:
+    Type: AWS::DynamoDB::Table
+    Description: A simple key/value table to store the info for anyone interested in our startup.
+    Properties:
+      TableName: 'a-new-startup-dev'
+      BillingMode: 'PAY_PER_REQUEST'
+      AttributeDefinitions:
+        -
+          AttributeName: email
+          AttributeType: S
+      KeySchema:
+        - 
+          AttributeName: email
+          KeyType: HASH 
+      
+  NewSignupQueue: 
+    Type: AWS::SQS::Queue
+    Description: A Queue 
+    Properties:
+      QueueName: 'a-new-startup-dev'
+      
+  NewSignupTopic:
+    Type: AWS::SNS::Topic
+    Description: A Topic so we can publish messages to inform someone when a person signs up.
+    Properties:
+      TopicName: 'a-new-startup-dev'
+      Subscription:
+      - Endpoint:
+          Fn::GetAtt: [NewSignupQueue, Arn]
+        Protocol: sqs
+
+  AllowSNS2SQSPolicy:
+    Type: AWS::SQS::QueuePolicy
+    Properties:
+      PolicyDocument:
+        Id: PublicationPolicy
+        Statement:
+        - Action: ['sqs:SendMessage']
+          Condition:
+            ArnEquals:
+              aws:SourceArn: {Ref: NewSignupTopic}
+          Effect: Allow
+          Principal: {AWS: '*'}
+          Resource:
+            Fn::GetAtt: [NewSignupQueue, Arn]
+          Sid: Allow-SNS-SendMessage
+        Version: '2008-10-17'
+      Queues:
+      - {Ref: NewSignupQueue}
+  
+  SSMParamAccount:
+    Type: AWS::SSM::Parameter
+    Description: Store the Account ID in an SSM parameter, the NodeJS code will access this as needed.
+    Properties:
+      Name: /a-new-startup/dev/aws-account
+      Type: String
+      Value: !Ref AWS::AccountId
+      Tags:
+        demo: a-new-startup
+
+  SSMParamTable:
+    Type: AWS::SSM::Parameter
+    Description: The NodeJS code will retrieve the name of the table it is to be updating from this Parameter
+    Properties:
+      Name: /a-new-startup/dev/tablename
+      Type: String
+      Value: !Ref StartupSignupsTable
+      Tags:
+        demo: a-new-startup
+
+  SSMParamTopic:
+    Type: AWS::SSM::Parameter
+    Description: The NodeJS code will retrieve the ARN of the SNS topic from this parameter.
+    Properties:
+      Name: /a-new-startup/dev/topicarn
+      Type: String
+      Value: !Ref NewSignupTopic
+      Tags:
+        demo: a-new-startup
+
+  InstanceProfileRole:
+    Type: AWS::IAM::Role
+    Description: The Role to be used by the EC2 instance - includes application permissions and SSM
+    Properties:
+      RoleName: "a-new-startup"
+      Description: Role for EC2 Instance Profile for A-New-Startup
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service:
+                - ec2.amazonaws.com
+            Action:
+              - 'sts:AssumeRole'
+      ManagedPolicyArns:
+        # Use this Managed Policy so we can use SSM
+        - "arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore"
+        # Also will add the app permissions via the policy defined next
+
+  Ec2InstanceProfileRolePolicy:
+    Type: AWS::IAM::Policy
+    Description: Basic application level permissions needed for a-new-startup to run. Used by the Instance Profile Role, but can be used by others too.
+    Properties:
+      PolicyName: "a-new-startup"
+      Roles:
+        - !Ref InstanceProfileRole
+      PolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: Allow
+            Action:
+              - 'dynamodb:PutItem'
+            Resource:
+              - Fn::Join:
+                  - ""
+                  - - "arn:"
+                    - Ref: AWS::Partition
+                    - ":dynamodb:"
+                    - Ref: AWS::Region
+                    - ":"
+                    - Ref: AWS::AccountId
+                    - :table/a-new-startup*
+          - Effect: Allow
+            Action:
+              - 'ssm:GetParameter*'
+            Resource:
+              - Fn::Join:
+                  - ""
+                  - - "arn:"
+                    - Ref: AWS::Partition
+                    - ":ssm:"
+                    - Ref: AWS::Region
+                    - ":"
+                    - Ref: AWS::AccountId
+                    - :parameter/a-new-startup*
+          - Effect: Allow
+            Action:
+              - 'sns:Publish'
+            Resource:
+              - Fn::Join:
+                  - ""
+                  - - "arn:"
+                    - Ref: AWS::Partition
+                    - ":sns:"
+                    - Ref: AWS::Region
+                    - ":"
+                    - Ref: AWS::AccountId
+                    - :a-new-startup*
+          # The ec2 instance will need to be able to download the bundle (CodeDeploy)
+          - Effect: Allow
+            Action:
+              - 's3:Get*'
+              - 's3:List*'
+            Resource:
+              - Fn::Join:
+                  - ""
+                  - - "arn:"
+                    - Ref: AWS::Partition
+                    - ":s3"
+                    - ":"
+                    - ":"
+                    - ":a-new-startup*"
+              - Fn::Join:
+                  - ""
+                  - - "arn:"
+                    - Ref: AWS::Partition
+                    - ":s3"
+                    - ":"
+                    - ":"
+                    - ":a-new-startup*/*"

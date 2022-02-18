@@ -1,0 +1,48 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: A-New-Startup app - CodeCommit repos and ECR Repos used by the CI/CD Pipeline
+
+Parameters:
+  CodeBucketName:
+    Type: String
+    Description: "Name of s3 bucket containing the a-new-startup.zip source code - to initialize the repo."
+
+Resources:
+
+  CodeCommitRepo:
+    Type: AWS::CodeCommit::Repository
+    Properties: 
+      Code: 
+        S3:
+          # We initialize the CodeCommit repo contents from this zip.
+          # This ONLY WORKS ON INITIAL CREATE.  You cannot update repo contents through CF.
+          Bucket: !Ref CodeBucketName
+          Key: a-new-startup.zip
+      RepositoryDescription: "The A-New-Startup application code - used in a CI/CD pipeline"
+      RepositoryName: "a-new-startup"
+
+  #
+  # Everything below here is for the testing code
+  # Which is Python and turned into a container image
+  #
+
+  BaseImageRepository:
+    Type: AWS::ECR::Repository
+    Properties:
+      RepositoryName: "a-new-startup-test-base-image"
+            
+  TestingImageRepository:
+    Type: AWS::ECR::Repository
+    Properties:
+      RepositoryName: "a-new-startup-testing-image"
+
+  TestingCodeCommitRepo:
+    Type: AWS::CodeCommit::Repository
+    Properties: 
+      Code: 
+        S3:
+          # We initialize the CodeCommit repo contents from this zip.
+          # This ONLY WORKS ON INITIAL CREATE.  You cannot update repo contents through CF.
+          Bucket: !Ref CodeBucketName
+          Key: a-new-startup-ui-tests.zip
+      RepositoryDescription: "The A-New-Startup testing code - used in a CI/CD pipeline"
+      RepositoryName: "a-new-startup-testing-image"

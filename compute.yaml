@@ -1,0 +1,155 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: A-New-Startup - Sets up the frontend layer of the app - An ALB in front for an ASG of Amazon Linux 2 EC2 instances.
+
+Parameters:
+
+  VpcId:
+    Type: String
+    Description: "The VPC Id where the ALB/ASG/Launch Template should be created"
+    
+  Subnets:
+    Description: Choose which subnets the Application Load Balancer should be deployed to.  Must be Public subnets!
+    Type: List<AWS::EC2::Subnet::Id>
+
+  AZs:
+    Description: A comma delimited list of AZs to use for the ASG. Should be the same AZs as the two subnets! of course!
+    Type: String
+    
+  AmiId:
+    Type: 'AWS::SSM::Parameter::Value<AWS::EC2::Image::Id>'
+    Default: '/aws/service/ami-amazon-linux-latest/amzn2-ami-hvm-x86_64-gp2'
+    Description: "Amazon Linux 2 AMI ID to use - defaults to latest for this region."
+    
+  InstanceType:
+    Type: String
+    Default: "t2.micro"
+    AllowedValues: ["t2.micro", "t3.micro", "t2.small", "t3.small"]
+    Description: "Enter instance type to use. Default is t2.micro"
+
+Resources:
+
+  SecurityGroup:
+    Type: 'AWS::EC2::SecurityGroup'
+    Properties:
+      GroupDescription: "Security group for a-new-startup application EC2 instances"
+      GroupName: "a-new-startup"
+      SecurityGroupIngress:
+        - CidrIp: "0.0.0.0/0"
+          FromPort: 80
+          ToPort: 80
+          IpProtocol: tcp
+      VpcId: !Ref VpcId
+  
+  # So the ALB can hit the EC2 instances on port 3000 (NodeJS)
+  SecurityGroupIngress:
+    Type: 'AWS::EC2::SecurityGroupIngress'
+    Properties:
+      Description: "So the ALB can reach the NodeJs listening on 3000"
+      GroupId: !GetAtt SecurityGroup.GroupId
+      SourceSecurityGroupId: !GetAtt SecurityGroup.GroupId
+      FromPort: 3000
+      ToPort: 3000
+      IpProtocol: tcp
+  
+  InstanceProfile:
+    Type: AWS::IAM::InstanceProfile
+    Properties:
+      InstanceProfileName: a-new-startup
+      Roles:
+        - "a-new-startup"
+
+  LaunchTemplate:
+    Type: AWS::EC2::LaunchTemplate
+    Properties:
+      LaunchTemplateName: a-new-startup
+      LaunchTemplateData:
+        IamInstanceProfile:
+          Arn: !GetAtt
+            - InstanceProfile
+            - Arn
+        ImageId: !Ref AmiId
+        InstanceType: !Ref InstanceType
+        SecurityGroupIds:
+          - !Ref SecurityGroup
+        # We use tags later to put these instance in the DeploymentGroup
+        TagSpecifications:
+        - ResourceType: instance
+          Tags:
+          - Key: deploymentgroup
+            Value: a-new-startup
+          - Key: Name
+            Value: a-new-startup
+        UserData:
+          # Run this UserData to install the CodeDeploy Agent.  
+          Fn::Base64: !Sub | 
+            #!/bin/bash -xe
+            ## CodeDeploy Agent Install
+            yum install -y wget
+            yum install -y jq
+            yum install -y ruby
+            REGION=$(curl -s 169.254.169.254/latest/dynamic/instance-identity/document | jq -r ".region")
+            cd /home/ec2-user
+            URL="https://aws-codedeploy-$REGION.s3.$REGION.amazonaws.com/latest/install"
+            wget $URL
+            chmod +x ./install
+            ./install auto
+            service codedeploy-agent start
+            service codedeploy-agent status
+
+
+  AutoScalingGroup:
+    Type: AWS::AutoScaling::AutoScalingGroup
+    Properties:
+      AutoScalingGroupName: "a-new-startup"
+      AvailabilityZones: !Split [',', !Ref AZs]
+      MinSize: 2
+      DesiredCapacity: 2
+      MaxSize: 4
+      TargetGroupARNs:
+        - !Ref DefaultTargetGroup
+      LaunchTemplate:
+        LaunchTemplateName: "a-new-startup"
+        Version: !GetAtt LaunchTemplate.LatestVersionNumber
+        
+  ApplicationLoadBalancer:
+    Type: AWS::ElasticLoadBalancingV2::LoadBalancer
+    Properties: 
+      Name: "a-new-startup" 
+      Scheme: internet-facing
+      SecurityGroups: 
+        - !Ref SecurityGroup
+      Subnets: !Ref Subnets
+      Type: application
+      
+  LoadBalancerListener:
+    Type: AWS::ElasticLoadBalancingV2::Listener
+    Properties:
+      LoadBalancerArn: !Ref ApplicationLoadBalancer
+      # Not best practice.  Trying to keep things simple.
+      Port: 80
+      Protocol: HTTP
+      DefaultActions:
+        - Type: forward
+          TargetGroupArn: !Ref DefaultTargetGroup
+
+  DefaultTargetGroup:
+    Type: AWS::ElasticLoadBalancingV2::TargetGroup
+    Properties:
+      Name: "a-new-startup"
+      VpcId: !Ref VpcId
+      Port: 3000
+      Protocol: HTTP
+      HealthyThresholdCount: 2
+      # Set de-regisration really low - makes for faster demos and debugging
+      # Set this higher in real-life
+      TargetGroupAttributes:
+        - Key: deregistration_delay.timeout_seconds
+          Value: 10
+                    
+Outputs:
+  ALBDNS:
+    Description: DNS Of the ALB - pull this up in the browser to see the application.
+    Value: !GetAtt ApplicationLoadBalancer.DNSName
+    Export:
+      Name: ALBDNS
+  

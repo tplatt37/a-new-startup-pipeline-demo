@@ -1,5 +1,5 @@
 AWSTemplateFormatVersion: '2010-09-09'
-Description: A-New-Startup - Sets up the CI/CD Pipeline
+Description: A-New-Startup - Sets up the Build Projects, Artifact bucket, and other things needed by the CI/CD Pipeline
 
 Resources:
   

@@ -16,8 +16,6 @@
 #
 # Then run this bash script.
 #
-#
-#
 
 # This is the application code.
 cd ../a-new-startup && zip -r --exclude=*.git/* ../a-new-startup-pipeline-demo/a-new-startup.zip ./* .[^.]* && cd ../a-new-startup-pipeline-demo

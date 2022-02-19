@@ -102,75 +102,74 @@ Resources:
         # Use this Managed Policy so we can use SSM
         - "arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore"
         # Also will add the app permissions via the policy defined next
+        - !Ref AppManagedPolicy
 
-  Ec2InstanceProfileRolePolicy:
-    Type: AWS::IAM::Policy
-    Description: Basic application level permissions needed for a-new-startup to run. Used by the Instance Profile Role, but can be used by others too.
-    Properties:
-      PolicyName: "a-new-startup"
-      Roles:
-        - !Ref InstanceProfileRole
-      PolicyDocument:
-        Version: "2012-10-17"
-        Statement:
-          - Effect: Allow
-            Action:
-              - 'dynamodb:PutItem'
-            Resource:
-              - Fn::Join:
-                  - ""
-                  - - "arn:"
-                    - Ref: AWS::Partition
-                    - ":dynamodb:"
-                    - Ref: AWS::Region
-                    - ":"
-                    - Ref: AWS::AccountId
-                    - :table/a-new-startup*
-          - Effect: Allow
-            Action:
-              - 'ssm:GetParameter*'
-            Resource:
-              - Fn::Join:
-                  - ""
-                  - - "arn:"
-                    - Ref: AWS::Partition
-                    - ":ssm:"
-                    - Ref: AWS::Region
-                    - ":"
-                    - Ref: AWS::AccountId
-                    - :parameter/a-new-startup*
-          - Effect: Allow
-            Action:
-              - 'sns:Publish'
-            Resource:
-              - Fn::Join:
-                  - ""
-                  - - "arn:"
-                    - Ref: AWS::Partition
-                    - ":sns:"
-                    - Ref: AWS::Region
-                    - ":"
-                    - Ref: AWS::AccountId
-                    - :a-new-startup*
-          # The ec2 instance will need to be able to download the bundle (CodeDeploy)
-          - Effect: Allow
-            Action:
-              - 's3:Get*'
-              - 's3:List*'
-            Resource:
-              - Fn::Join:
-                  - ""
-                  - - "arn:"
-                    - Ref: AWS::Partition
-                    - ":s3"
-                    - ":"
-                    - ":"
-                    - ":a-new-startup*"
-              - Fn::Join:
-                  - ""
-                  - - "arn:"
-                    - Ref: AWS::Partition
-                    - ":s3"
-                    - ":"
-                    - ":"
-                    - ":a-new-startup*/*"
+  AppManagedPolicy:
+      Type: AWS::IAM::ManagedPolicy
+      Description: Basic application level permissions needed for a-new-startup to run.
+      Properties:
+        ManagedPolicyName: "a-new-startup"
+        PolicyDocument:
+          Version: "2012-10-17"
+          Statement:
+            - Effect: Allow
+              Action:
+                - 'dynamodb:PutItem'
+              Resource:
+                - Fn::Join:
+                    - ""
+                    - - "arn:"
+                      - Ref: AWS::Partition
+                      - ":dynamodb:"
+                      - Ref: AWS::Region
+                      - ":"
+                      - Ref: AWS::AccountId
+                      - :table/a-new-startup*
+            - Effect: Allow
+              Action:
+                - 'ssm:GetParameter*'
+              Resource:
+                - Fn::Join:
+                    - ""
+                    - - "arn:"
+                      - Ref: AWS::Partition
+                      - ":ssm:"
+                      - Ref: AWS::Region
+                      - ":"
+                      - Ref: AWS::AccountId
+                      - :parameter/a-new-startup*
+            - Effect: Allow
+              Action:
+                - 'sns:Publish'
+              Resource:
+                - Fn::Join:
+                    - ""
+                    - - "arn:"
+                      - Ref: AWS::Partition
+                      - ":sns:"
+                      - Ref: AWS::Region
+                      - ":"
+                      - Ref: AWS::AccountId
+                      - :a-new-startup*
+            # The ec2 instance will need to be able to download the bundle (CodeDeploy)
+            - Effect: Allow
+              Action:
+                - 's3:Get*'
+                - 's3:List*'
+              Resource:
+                - Fn::Join:
+                    - ""
+                    - - "arn:"
+                      - Ref: AWS::Partition
+                      - ":s3"
+                      - ":"
+                      - ":"
+                      - ":a-new-startup*"
+                - Fn::Join:
+                    - ""
+                    - - "arn:"
+                      - Ref: AWS::Partition
+                      - ":s3"
+                      - ":"
+                      - ":"
+                      - ":a-new-startup*/*"

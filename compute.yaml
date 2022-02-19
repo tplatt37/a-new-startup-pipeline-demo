@@ -11,10 +11,6 @@ Parameters:
     Description: Choose which subnets the Application Load Balancer should be deployed to.  Must be Public subnets!
     Type: List<AWS::EC2::Subnet::Id>
 
-  AZs:
-    Description: A comma delimited list of AZs to use for the ASG. Should be the same AZs as the two subnets! of course!
-    Type: String
-    
   AmiId:
     Type: 'AWS::SSM::Parameter::Value<AWS::EC2::Image::Id>'
     Default: '/aws/service/ami-amazon-linux-latest/amzn2-ami-hvm-x86_64-gp2'
@@ -101,7 +97,7 @@ Resources:
     Type: AWS::AutoScaling::AutoScalingGroup
     Properties:
       AutoScalingGroupName: "a-new-startup"
-      AvailabilityZones: !Split [',', !Ref AZs]
+      VPCZoneIdentifier: !Ref Subnets
       MinSize: 2
       DesiredCapacity: 2
       MaxSize: 4

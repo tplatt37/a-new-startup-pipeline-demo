@@ -15,8 +15,5 @@ echo "Subnets=$SUBNETS"
 VPC_ID=$(aws ec2 describe-subnets --subnet-ids $SUBNETS --query 'Subnets[0].VpcId' --output text)
 echo "VpcId=$VPC_ID"
 
-# This is a comma delimited list of AZs. Grab these off the subnets. This is needed for the Auto Scaling Group. 
-AZS=$(aws ec2 describe-subnets --subnet-ids $SUBNETS --query 'Subnets[].AvailabilityZone' --output text | sed -e 's/\t/,/g')
-echo "AZs=$AZS"
 
-aws cloudformation deploy --template-file compute.yaml --stack-name "a-new-startup-compute" --parameter-overrides VpcId=$VPC_ID Subnets=$1 AZs=$AZS --capabilities CAPABILITY_NAMED_IAM
+aws cloudformation deploy --template-file compute.yaml --stack-name "a-new-startup-compute" --parameter-overrides VpcId=$VPC_ID Subnets=$1 --capabilities CAPABILITY_NAMED_IAM

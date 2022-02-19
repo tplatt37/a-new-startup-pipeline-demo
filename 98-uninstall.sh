@@ -28,7 +28,6 @@ ARTIFACT_BUCKET_STORE=$(aws cloudformation describe-stacks --stack-name a-new-st
 echo "Will empty bucket $ARTIFACT_BUCKET_STORE - to prevent stack delete from failing..."
 aws s3 rm s3://$ARTIFACT_BUCKET_STORE --recursive
 
-
 # Manually --force delete the ecr repos.  They'll fail to delete otherwise.
 aws ecr delete-repository --repository-name "a-new-startup-test-base-image" --force
 aws ecr delete-repository --repository-name "a-new-startup-testing-image" --force

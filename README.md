@@ -12,7 +12,7 @@ A Pipeline uses CodePipeline/CodeBuild/CodeDeploy to deploy the A-New-Startup ap
 
 # Requirements
 
-You need to supply a VPC with 2 Public Subnets.
+You need to supply a VPC with 2 Public Subnets.  If you are going to continue beyond this demo with the ECS demo, choose a VPC with both Public and Private subnets.  The Private subnets would be needed for the ECS (Fargate) demo later.
 
 You need to supply a private S3 bucket, which will be used to temporarily house the A-New-Startup source code (so it can be copied into the CodeCommit repo.)
 
@@ -23,6 +23,10 @@ If you need multiple installs, use different accounts!
 This repo is meant for demos to students - so we keep it as simple (as possible).
 
 # Installation
+
+I recommend setting your AWS_DEFAULT_REGION first:
+
+export AWS_DEFAULT_REGION=us-east-1
 
 Run the following command, and pass the S3 Bucket Name as the first argument, and a comma delimited list of the 2 PUBLIC subnets:
 

@@ -48,6 +48,7 @@ source 05-pipeline.sh
 echo "Done..."
 
 DNSNAME=$(aws cloudformation describe-stacks --stack-name a-new-startup-compute --query "Stacks[0].Outputs[?OutputKey=='ALBDNS'].OutputValue" --output text )
-echo "Open this URL in your browser to see the app:"
+echo "Open this URL in your browser to see the app. NOTE: It won't work until the first run of the Pipeline finishes..."
+echo " "
 echo "http://$DNSNAME"
-
+echo " "

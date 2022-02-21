@@ -12,7 +12,7 @@ A Pipeline uses CodePipeline/CodeBuild/CodeDeploy to deploy the A-New-Startup ap
 
 # Requirements
 
-You need to supply a VPC with 2 Public Subnets.  If you are going to continue beyond this demo with the ECS demo, choose a VPC with both Public and Private subnets.  The Private subnets would be needed for the ECS (Fargate) demo later.
+You need to supply a VPC with 2 Public Subnets.  
 
 You need to supply a private S3 bucket, which will be used to temporarily house the A-New-Startup source code (so it can be copied into the CodeCommit repo.)
 

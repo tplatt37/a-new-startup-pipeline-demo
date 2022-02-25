@@ -87,7 +87,7 @@ Resources:
     Type: AWS::IAM::Role
     Description: The Role to be used by the EC2 instance - includes application permissions and SSM
     Properties:
-      RoleName: "a-new-startup"
+      # NOTE: No RoleName specified, because IAM names are cross-region. We need it to be uniquely named.
       Description: Role for EC2 Instance Profile for A-New-Startup
       AssumeRolePolicyDocument:
         Version: "2012-10-17"
@@ -108,7 +108,7 @@ Resources:
       Type: AWS::IAM::ManagedPolicy
       Description: Basic application level permissions needed for a-new-startup to run.
       Properties:
-        ManagedPolicyName: "a-new-startup"
+        # No PolicyName used, we want a unique name generated automatically
         PolicyDocument:
           Version: "2012-10-17"
           Statement:
@@ -152,6 +152,7 @@ Resources:
                       - Ref: AWS::AccountId
                       - :a-new-startup*
             # The ec2 instance will need to be able to download the bundle (CodeDeploy)
+            # This requires the build to be in a bucket that starts with a-new-startup*
             - Effect: Allow
               Action:
                 - 's3:Get*'

@@ -21,6 +21,8 @@ if [ -z $2 ]; then
         exit 0
 fi
 
+REGION=${AWS_DEFAULT_REGION:-$(aws configure get default.region)}
+echo "Creating in $REGION..."
 
 echo "Copying ZIP to $1, and creating CodeCommit repo..."
 source 01-repo.sh $1

@@ -50,9 +50,10 @@ Resources:
   InstanceProfile:
     Type: AWS::IAM::InstanceProfile
     Properties:
-      InstanceProfileName: a-new-startup
+      # No Name specified so we get a dynamic name.
       Roles:
-        - "a-new-startup"
+        # This role was created by the prior stack and the name is made available via a Stack Export.
+        - !ImportValue "a-new-startup-pipeline-InstanceProfileRoleName"
 
   LaunchTemplate:
     Type: AWS::EC2::LaunchTemplate
@@ -67,7 +68,8 @@ Resources:
         InstanceType: !Ref InstanceType
         SecurityGroupIds:
           - !Ref SecurityGroup
-        # We use tags later to put these instance in the DeploymentGroup
+        # We *might* use these tags later to put these instance in the DeploymentGroup
+        # We also have the option of using the ASG instead
         TagSpecifications:
         - ResourceType: instance
           Tags:

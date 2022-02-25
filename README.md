@@ -16,9 +16,9 @@ You need to supply a VPC with 2 Public Subnets.
 
 You need to supply a private S3 bucket, which will be used to temporarily house the A-New-Startup source code (so it can be copied into the CodeCommit repo.)
 
-This set of templates uses many static/fixed resource names (stack names, repo name, iam stuff, and much more) for simplicity's sake. 
-This means you can only install it ONCE per account (stack will fail with naming conflicts otherwiwse).
-If you need multiple installs, use different accounts!
+This set of templates uses some static/fixed resource names (stack names, repo name, DynamoDB Table, and much more) for simplicity's sake. 
+This means you can only install it ONCE per region (stack will fail with naming conflicts otherwiwse).
+If you need multiple installs, use different regions!
 
 This repo is meant for demos to students - so we keep it as simple (as possible).
 
@@ -116,7 +116,7 @@ If you attempt to pull that particular container image from docker.io - you WILL
 # A Warning
 
 This code should NOT be considered production ready.  
-While some best practices have been incorporated, the primary goal was to keep things SIMPLE so that students can absorb what they are being shown - without tons of extraneous error checking and complicated dynamic names.
+While some best practices have been incorporated, the primary goal was to keep things SIMPLE so that students can absorb what they are being shown - without tons of extraneous error checking.
 
 
 

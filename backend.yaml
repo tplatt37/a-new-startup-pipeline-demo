@@ -174,3 +174,10 @@ Resources:
                       - ":"
                       - ":"
                       - ":a-new-startup*/*"
+
+Outputs:
+
+  InstanceProfileRoleName:
+    Value: !Ref InstanceProfileRole
+    Export:
+      Name: "a-new-startup-pipeline-InstanceProfileRoleName"

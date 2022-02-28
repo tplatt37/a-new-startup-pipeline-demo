@@ -34,6 +34,12 @@ Resources:
           FromPort: 80
           ToPort: 80
           IpProtocol: tcp
+          # NodeJS app is listening on port 3000
+          # For debugging and demos, we want to demonstrate this without going via the ALB.
+        - CidrIp: "0.0.0.0/0"
+          FromPort: 3000
+          ToPort: 3000
+          IpProtocol: tcp
       VpcId: !Ref VpcId
   
   # So the ALB can hit the EC2 instances on port 3000 (NodeJS)

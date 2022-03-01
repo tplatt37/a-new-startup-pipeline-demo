@@ -28,7 +28,11 @@ This diagram shows the basic outline of how the application will run in the clou
 
 ![Diagram - A-New-Startup running on EC2/ASG/ALB](/diagrams/aws-a-new-startup-pipeline-demo-compute.png)
 
-Not shown is the CI/CD Pipeline, which utilizes CodeCommit/CodePipeline/CodeBuild/CodeDeploy.
+
+A CI/CD Pipeline will be created as well.
+
+![Diagram - Simple CI/CD pipeline to deploy to EC2](/diagrams/aws-a-new-startup-pipeline-demo-cicd.png)
+
 
 # Installation
 

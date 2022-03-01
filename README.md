@@ -26,7 +26,7 @@ This repo is meant for demos to students - so we keep it as simple (as possible)
 
 This diagram shows the basic outline of how the application will run in the cloud.  Remember, you supply the VPC/Subnets.
 
-![Diagram - A-New-Startup running on EC2/ASG/ALB](/diagrams/a-new-startup-pipeline-demo-compute.png)
+![Diagram - A-New-Startup running on EC2/ASG/ALB](/diagrams/aws-a-new-startup-pipeline-demo-compute.png)
 
 Not shown is the CI/CD Pipeline, which utilizes CodeCommit/CodePipeline/CodeBuild/CodeDeploy.
 

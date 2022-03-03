@@ -38,14 +38,19 @@ A CI/CD Pipeline will be created as well.
 
 I recommend setting your AWS_DEFAULT_REGION first:
 
+```
 export AWS_DEFAULT_REGION=us-east-1
+```
 
 Run the following command, and pass the S3 Bucket Name as the first argument, and a comma delimited list of the 2 PUBLIC subnets:
 
+```
 ./00-install.sh "BUCKET_NAME_HERE" "subnet-1234568999,subnet-8298392925"
+```
 
 Alternatively, you can run the individual files (This is helpful after the initial install if you are making updates and only want one stack to be updated.)
 
+```
 ./01-repo.sh "BUCKET_NAME_HERE"
 
 ./02-backend.sh
@@ -55,6 +60,7 @@ Alternatively, you can run the individual files (This is helpful after the initi
 ./04-build-projects.sh
 
 ./05-pipeline.sh
+```
 
 # What's Next?
 
@@ -65,25 +71,32 @@ After it is deployed, pull up the ALB DNSName in your browser to see the app. (T
 To run it again, you have the option of using "Release Change" in CodePipeline, or cloning the application source, and making changes.
 
 Find the Clone URL using:
+```
 aws codecommit get-repository --repository-name "a-new-startup"
-
+```
 or
 
+```
 aws codecommit get-repository --repository-name "a-new-startup" --query "repositoryMetadata.cloneUrlSsh"
+```
 
 Then run a git clone:
+```
 git clone ssh://git-codecommit.us-east-1.amazonaws.com/v1/repos/a-new-startup
+```
 
-or use command substitution to do all that in one command (NOTE: Using ssh here.  Change to http if desired)
+or use command substitution to do all that in one command (NOTE: Using ssh here. Change to http if desired)
 
+```
 git clone $(aws codecommit get-repository --repository-name "a-new-startup" --query "repositoryMetadata.cloneUrlSsh" --output text)         
-
+```
 Modify some of the visible text in src/views/index.ejs (for an easy and visible change)
 
+```
 git commit -a -m "updated version number"
 
 git push
-
+```
 The pipeline should then kick off with the latest commit.
 
 # Then what? 
@@ -93,9 +106,9 @@ There's an option on the pipeline stack to include a testing stage.
 This stage uses a containerized python script with Selenium to perform a UI level test of the code.
 
 Enable this stage by running:
-
+```
 ./06-add-test-stage.sh
-
+```
 Please note that this version of the pipeline will take longer to run, and it will be more complicated.
 
 (Which is why this extra stage isn't included at first)
@@ -105,7 +118,9 @@ Please note that this version of the pipeline will take longer to run, and it wi
 
 To uninstall (WARNING - This deletes EVERYTHING created above - no snapshots, no retain - even on the DynamoDB table)
 
+```
 ./98-uninstall.sh 
+```
 
 To uninstall manually:
 1. Empty the ArtifactStoreBucket (Look for an output in the a-new-startup-pipeline stack created by pipeline.yaml)

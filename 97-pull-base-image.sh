@@ -23,7 +23,7 @@ echo $REPOSITORY_URI
 # Must be logged into ECR - it's a private repo
 aws ecr get-login-password --region $REGION | docker login --username AWS --password-stdin $REPOSITORY_URI
 
-docker tag selenium/standalone-chrome $REPOSITORY_URI:latest
+docker tag selenium/standalone-chrome:94.0 $REPOSITORY_URI:latest
 
 docker push $REPOSITORY_URI:latest
 

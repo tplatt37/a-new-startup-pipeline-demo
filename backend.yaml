@@ -181,3 +181,8 @@ Outputs:
     Value: !Ref InstanceProfileRole
     Export:
       Name: "a-new-startup-pipeline-InstanceProfileRoleName"
+      
+  AppManagedPolicy:
+    Value: !Ref AppManagedPolicy
+    Export:
+      Name: "a-new-startup-pipeline-AppManagedPolicy"

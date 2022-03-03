@@ -6,8 +6,8 @@
 # (and you WILL get throttled...)
 #
 
-# Pull from docker hub
-docker pull selenium/standalone-chrome
+# Pull from docker hub.   Versions later than 94.0 *might* have a problem. So pin to this version for now.
+docker pull selenium/standalone-chrome:94.0
 
 # Get region from AWS_DEFAULT_REGION, or from the profile
 REGION=${AWS_DEFAULT_REGION:-$(aws configure get region)}

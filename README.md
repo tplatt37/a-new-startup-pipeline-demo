@@ -45,7 +45,7 @@ export AWS_DEFAULT_REGION=us-east-1
 Run the following command, and pass the S3 Bucket Name as the first argument, and a comma delimited list of the 2 PUBLIC subnets:
 
 ```
-./00-install.sh "BUCKET_NAME_HERE" "subnet-1234568999,subnet-8298392925"
+./install.sh "BUCKET_NAME_HERE" "subnet-1234568999,subnet-8298392925"
 ```
 
 Alternatively, you can run the individual files (This is helpful after the initial install if you are making updates and only want one stack to be updated.)
@@ -119,7 +119,7 @@ Please note that this version of the pipeline will take longer to run, and it wi
 To uninstall (WARNING - This deletes EVERYTHING created above - no snapshots, no retain - even on the DynamoDB table)
 
 ```
-./98-uninstall.sh 
+./99-uninstall.sh 
 ```
 
 To uninstall manually:
@@ -130,11 +130,7 @@ To uninstall manually:
 
 # Other things...
 
-The a-new-startup.zip file is a zip of the application source code. It includes the files needed for the CI/CD pipeline (buildspec.yaml, appspec.yaml)
-
-You don't need 99-zip-source-bundle.sh.  That's a utility file for the maintainer (me).
-
-The a-new-startup-ui-tests.zip is the simple code to perform the Selenium testing.
+The 01-repo.sh script will pull down the latest A-New-Startup app code and UI Testing code from Github. 
 
 97-pull-base-image.sh is called by another shell file to "cache" the Selenium/Headless Chrome image in a private ECR repo. 
 

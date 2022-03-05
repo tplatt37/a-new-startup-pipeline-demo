@@ -2,12 +2,15 @@
 
 #
 # Use this to pull and push selenium/standalone-chrome from DockerHub to your own private ECR.
-# This will prevent your demos from being disrupted if you get throllted by docker.io
+# This will prevent your demos from being disrupted if you get throttled by docker.io
 # (and you WILL get throttled...)
 #
 
-# Pull from docker hub.   Versions later than 94.0 *might* have a problem. So pin to this version for now.
-docker pull selenium/standalone-chrome:94.0
+VERSION_TAG=97.0
+
+# Pull from docker hub.   
+# NOTE: We're pinning to a version we know will work
+docker pull selenium/standalone-chrome:$VERSION_TAG
 
 # Get region from AWS_DEFAULT_REGION, or from the profile
 REGION=${AWS_DEFAULT_REGION:-$(aws configure get region)}
@@ -23,7 +26,7 @@ echo $REPOSITORY_URI
 # Must be logged into ECR - it's a private repo
 aws ecr get-login-password --region $REGION | docker login --username AWS --password-stdin $REPOSITORY_URI
 
-docker tag selenium/standalone-chrome:94.0 $REPOSITORY_URI:latest
+docker tag selenium/standalone-chrome:$VERSION_TAG $REPOSITORY_URI:latest
 
 docker push $REPOSITORY_URI:latest
 

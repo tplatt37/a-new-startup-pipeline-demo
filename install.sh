@@ -15,17 +15,33 @@ if [ -z $1 ]; then
         echo "Need the S3 Bucket Name as a parameter. Exiting..."
         exit 0
 fi
+BUCKET=$1
 
 if [ -z $2 ]; then
         echo "Need a comma delimited list of two Public subnet Ids. Exiting..."
         exit 0
 fi
+SUBNETS_COMMADELIMITED=$2
 
 REGION=${AWS_DEFAULT_REGION:-$(aws configure get default.region)}
 echo "Creating in $REGION..."
 
-echo "Copying ZIP to $1, and creating CodeCommit repo..."
-source 01-repo.sh $1
+echo "Validating VPC and Subnets..."
+SUBNETS=$(echo $SUBNETS_COMMADELIMITED | sed 's/,/ /g')
+echo "Subnets=$SUBNETS"
+
+aws ec2 describe-subnets --subnet-ids $SUBNETS 1>/dev/null
+if [[ $? -ne 0 ]]; then
+        echo "Subnets $SUBNETS don't exist ($REGION) - please double check.  Exiting..."
+        exit 1
+fi
+
+# Grab the VpcId off the first subnet. This is needed for the Security Group and Target Group.
+VPC_ID=$(aws ec2 describe-subnets --subnet-ids $SUBNETS --query 'Subnets[0].VpcId' --output text)
+echo "VpcId=$VPC_ID"
+
+echo "Copying ZIP to $BUCKET, and creating CodeCommit repo..."
+source 01-repo.sh $BUCKET
 
 aws cloudformation wait stack-create-complete --stack-name "a-new-startup-repo"
 
@@ -35,7 +51,7 @@ source 02-backend.sh
 aws cloudformation wait stack-create-complete --stack-name "a-new-startup-backend"
 
 echo "Creating compute layer..."
-source 03-compute.sh $2
+source 03-compute.sh $SUBNETS_COMMADELIMITED
 
 aws cloudformation wait stack-create-complete --stack-name "a-new-startup-compute"
 

@@ -33,6 +33,10 @@ A CI/CD Pipeline will be created as well.
 
 ![Diagram - Simple CI/CD pipeline to deploy to EC2](/diagrams/aws-a-new-startup-pipeline-demo-cicd.png)
 
+If you run the optional 06-add-test-stage.sh, the Pipeline will be updated as follows:
+
+![Diagram - Simple CI/CD pipeline for a-new-startup with UI Testing](/diagrams/aws-a-new-startup-pipeline-demo-testing.png)
+
 
 # Installation
 

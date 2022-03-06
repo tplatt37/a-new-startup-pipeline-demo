@@ -1,6 +1,13 @@
 AWSTemplateFormatVersion: '2010-09-09'
 Description: A-New-Startup - Sets up the Build Projects, Artifact bucket, and other things needed by the CI/CD Pipeline
 
+
+Parameters:
+  Prefix:
+    Type: String
+    Default: "a-new-startup"
+    Description: "Used for the unique naming of resources and exports.  You probably should not change this."
+
 Resources:
   
 #
@@ -426,34 +433,34 @@ Outputs:
     Description: Where the build artifacts go.
     Value: !Ref ArtifactStoreBucket
     Export:
-      Name: a-new-startup-ArtifactStoreBucket
+      Name: !Join ['-', [!Ref Prefix, 'ArtifactStoreBucket']]
   
   BuildProject:
     Value: !Ref BuildProject
     Export:
-      Name: a-new-startup-BuildProject
+      Name: !Join ['-', [!Ref Prefix, 'BuildProject']]
       
   RunTestsBuildProject:    
     Value: !Ref RunTestsBuildProject
     Export:
-      Name: a-new-startup-RunTestsBuildProject
+      Name: !Join ['-', [!Ref Prefix, 'RunTestsBuildProject']]
       
   TestImageBuildProject:
     Value: !Ref TestImageBuildProject
     Export:
-      Name: a-new-startup-TestImageBuildProject
+      Name: !Join ['-', [!Ref Prefix, 'TestImageBuildProject']]
   
   Application:
     Value: !Ref Application
     Export:
-      Name: a-new-startup-Application
+      Name: !Join ['-', [!Ref Prefix, 'Application']]
   
   DeploymentGroup:
     Value: !Ref DeploymentGroup
     Export:
-      Name: a-new-startup-DeploymentGroup
+      Name: !Join ['-', [!Ref Prefix, 'DeploymentGroup']]
       
   CodePipelineServiceRole:
     Value: !GetAtt CodePipelineServiceRole.Arn
     Export:
-      Name: a-new-startup-CodePipelineServiceRole
+      Name: !Join ['-', [!Ref Prefix, 'CodePipelineServiceRole']]

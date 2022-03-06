@@ -33,10 +33,10 @@ git clone git@github.com:tplatt37/a-new-startup-ui-tests.git a-new-startup-ui-te
 cd a-new-startup-ui-tests-github && zip -r --exclude=*.git/* ../a-new-startup-ui-tests.zip ./* .[^.]* && cd ..
 
 # This is a zip of the testing code (python/selenim) used to test the UI.
-aws s3 cp a-new-startup-ui-tests.zip s3://$1
+aws s3 cp a-new-startup-ui-tests.zip s3://$BUCKET
 
 echo "Setting up CodeCommit repos and ECR repos..."
-aws cloudformation deploy --template-file repo.yaml --stack-name a-new-startup-repo --parameter-overrides CodeBucketName=$1
+aws cloudformation deploy --template-file repo.yaml --stack-name a-new-startup-repo --parameter-overrides CodeBucketName=$BUCKET
 
 echo "Waiting for stack update"
 

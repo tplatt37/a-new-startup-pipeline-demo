@@ -1,13 +1,20 @@
 AWSTemplateFormatVersion: '2010-09-09'
 Description: "A-New-Startup - Sets up the DynamoDB database, SNS Topic, SQS Queue, SSM parameters and some IAM things for a-new-startup"
 
+Parameters:
+
+  Prefix:
+    Type: String
+    Default: "a-new-startup"
+    Description: "Used for the unique naming of resources and exports.  You probably should not change this."
+    
 Resources:
 
   StartupSignupsTable:
     Type: AWS::DynamoDB::Table
     Description: A simple key/value table to store the info for anyone interested in our startup.
     Properties:
-      TableName: 'a-new-startup-dev'
+      # No TableName specified, a dynamic name will be generated.
       BillingMode: 'PAY_PER_REQUEST'
       AttributeDefinitions:
         -
@@ -20,15 +27,12 @@ Resources:
       
   NewSignupQueue: 
     Type: AWS::SQS::Queue
-    Description: A Queue 
-    Properties:
-      QueueName: 'a-new-startup-dev'
+    Description: A Queue for the A-New-Startup application
       
   NewSignupTopic:
     Type: AWS::SNS::Topic
     Description: A Topic so we can publish messages to inform someone when a person signs up.
     Properties:
-      TopicName: 'a-new-startup-dev'
       Subscription:
       - Endpoint:
           Fn::GetAtt: [NewSignupQueue, Arn]
@@ -124,6 +128,7 @@ Resources:
                       - Ref: AWS::Region
                       - ":"
                       - Ref: AWS::AccountId
+                      # Note how we use wildcards.  The backend resource names must start with a-new-startup
                       - :table/a-new-startup*
             - Effect: Allow
               Action:
@@ -151,6 +156,15 @@ Resources:
                       - ":"
                       - Ref: AWS::AccountId
                       - :a-new-startup*
+            # If using X-Ray, the Daemon will need these permissions to upload data to cloud.
+            - Effect: Allow
+              Action: 
+                - "xray:PutTraceSegments"
+                - "xray:PutTelemetryRecords"
+                - "xray:GetSamplingRules"
+                - "xray:GetSamplingTargets"
+                - "xray:GetSamplingStatisticSummaries"
+              Resource: "*"
             # The ec2 instance will need to be able to download the bundle (CodeDeploy)
             # This requires the build to be in a bucket that starts with a-new-startup*
             - Effect: Allow
@@ -180,9 +194,24 @@ Outputs:
   InstanceProfileRoleName:
     Value: !Ref InstanceProfileRole
     Export:
-      Name: "a-new-startup-pipeline-InstanceProfileRoleName"
+      Name: !Join ['-', [!Ref Prefix, 'pipeline-InstanceProfileRoleName']]
       
   AppManagedPolicy:
     Value: !Ref AppManagedPolicy
     Export:
-      Name: "a-new-startup-pipeline-AppManagedPolicy"
+      Name: !Join ['-', [!Ref Prefix, 'pipeline-AppManagedPolicy']]
+      
+  TableName:
+    Value: !Ref StartupSignupsTable
+    Export:
+      Name: !Join ['-', [!Ref Prefix, 'TableName']]
+      
+  TopicArn:
+    Value: !Ref NewSignupTopic
+    Export:
+      Name: !Join ['-', [!Ref Prefix, 'TopicArn']]
+
+  QueueArn:
+    Value: !GetAtt NewSignupQueue.Arn
+    Export:
+      Name: !Join ['-', [!Ref Prefix, 'QueueArn']]

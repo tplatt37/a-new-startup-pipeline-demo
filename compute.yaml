@@ -22,13 +22,17 @@ Parameters:
     AllowedValues: ["t2.micro", "t3.micro", "t2.small", "t3.small"]
     Description: "Enter instance type to use. Default is t2.micro"
 
+  Prefix:
+    Type: String
+    Default: "a-new-startup"
+    Description: "Used for the unique naming of resources and exports.  You probably should not change this."
+
 Resources:
 
   SecurityGroup:
     Type: 'AWS::EC2::SecurityGroup'
     Properties:
       GroupDescription: "Security group for a-new-startup application EC2 instances"
-      GroupName: "a-new-startup"
       SecurityGroupIngress:
         - CidrIp: "0.0.0.0/0"
           FromPort: 80
@@ -155,5 +159,5 @@ Outputs:
     Description: DNS Of the ALB - pull this up in the browser to see the application.
     Value: !GetAtt ApplicationLoadBalancer.DNSName
     Export:
-      Name: ALBDNS
+      Name: !Join ['-', [!Ref Prefix, 'ALBDNS']]
   

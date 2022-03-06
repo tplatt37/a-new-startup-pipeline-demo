@@ -62,8 +62,7 @@ Resources:
     Properties:
       # No Name specified so we get a dynamic name.
       Roles:
-        # This role was created by the prior stack and the name is made available via a Stack Export.
-        - !ImportValue "a-new-startup-pipeline-InstanceProfileRoleName"
+        - !Ref InstanceProfileRole
 
   LaunchTemplate:
     Type: AWS::EC2::LaunchTemplate
@@ -103,7 +102,6 @@ Resources:
             ./install auto
             service codedeploy-agent start
             service codedeploy-agent status
-
 
   AutoScalingGroup:
     Type: AWS::AutoScaling::AutoScalingGroup
@@ -153,6 +151,28 @@ Resources:
       TargetGroupAttributes:
         - Key: deregistration_delay.timeout_seconds
           Value: 10
+  
+  InstanceProfileRole:
+    Type: AWS::IAM::Role
+    Description: The Role to be used by the EC2 instance - includes application permissions and SSM
+    Properties:
+      # NOTE: No RoleName specified, because IAM names are cross-region. We need it to be uniquely named.
+      Description: Role for EC2 Instance Profile for A-New-Startup
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service:
+                - ec2.amazonaws.com
+            Action:
+              - 'sts:AssumeRole'
+      ManagedPolicyArns:
+        # Use this Managed Policy so we can use SSM
+        - "arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore"
+        # Also will add the app permissions via the policy in an earlier stack.
+        - !ImportValue "a-new-startup-AppManagedPolicy"
+
                     
 Outputs:
   ALBDNS:
@@ -161,3 +181,7 @@ Outputs:
     Export:
       Name: !Join ['-', [!Ref Prefix, 'ALBDNS']]
   
+  InstanceProfileRoleName:
+    Value: !Ref InstanceProfileRole
+    Export:
+      Name: !Join ['-', [!Ref Prefix, 'pipeline-InstanceProfileRoleName']]

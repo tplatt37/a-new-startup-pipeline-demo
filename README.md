@@ -10,6 +10,8 @@ A Launch Template is used in conjunction with an ASG.
 The Launch Template specifies a few minor things, including a User Data to install the CodeDeploy agent.
 A Pipeline uses CodePipeline/CodeBuild/CodeDeploy to deploy the A-New-Startup application to the instances in the ASG.
 
+This codebase is meant for the DevOps Engineering on AWS class.  As such, it follows a simple "script" and keeps things simple.
+
 # Requirements
 
 You need to supply a VPC with 2 Public Subnets.  
@@ -37,6 +39,9 @@ If you run the optional 06-add-test-stage.sh, the Pipeline will be updated as fo
 
 ![Diagram - Simple CI/CD pipeline for a-new-startup with UI Testing](/diagrams/aws-a-new-startup-pipeline-demo-testing.png)
 
+If you run the full pipeline, it will look as follows:
+
+DIAGRAM COMING SOON!
 
 # Installation
 
@@ -74,26 +79,13 @@ After it is deployed, pull up the ALB DNSName in your browser to see the app. (T
 
 To run it again, you have the option of using "Release Change" in CodePipeline, or cloning the application source, and making changes.
 
-Find the Clone URL using:
-```
-aws codecommit get-repository --repository-name "a-new-startup"
-```
-or
+To update the app (and trigger the CI/CD pipeline again) do the following:
 
-```
-aws codecommit get-repository --repository-name "a-new-startup" --query "repositoryMetadata.cloneUrlSsh"
-```
-
-Then run a git clone:
-```
-git clone ssh://git-codecommit.us-east-1.amazonaws.com/v1/repos/a-new-startup
-```
-
-or use command substitution to do all that in one command (NOTE: Using ssh here. Change to http if desired)
-
+Find the Clone URL (NOTE: Using ssh here) and clone easily with:
 ```
 git clone $(aws codecommit get-repository --repository-name "a-new-startup" --query "repositoryMetadata.cloneUrlSsh" --output text)         
 ```
+
 Modify some of the visible text in src/views/index.ejs (for an easy and visible change)
 
 ```
@@ -102,6 +94,7 @@ git commit -a -m "updated version number"
 git push
 ```
 The pipeline should then kick off with the latest commit.
+
 
 # Then what? 
 
@@ -116,6 +109,18 @@ Enable this stage by running:
 Please note that this version of the pipeline will take longer to run, and it will be more complicated.
 
 (Which is why this extra stage isn't included at first)
+
+OR 
+
+Why not make it a real pipeline?  For simplicity's sake we manually deploy the backend resources for the first part of this demo.
+
+But, a real pipeline will need to deploy those resources also.
+
+If you run this command, it will create the full pipeline.
+
+```
+./07-pipeline-full.sh
+```
 
 
 # Uninstall

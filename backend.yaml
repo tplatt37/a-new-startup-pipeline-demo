@@ -1,5 +1,9 @@
 AWSTemplateFormatVersion: '2010-09-09'
 Description: "A-New-Startup - Sets up the DynamoDB database, SNS Topic, SQS Queue, SSM parameters and some IAM things for a-new-startup"
+#
+# The resources created here will have dynamic and unique names.
+# If you want static names for a local build - use template-static-names.yaml instead.
+#
 
 Parameters:
 
@@ -7,12 +11,16 @@ Parameters:
     Type: String
     Default: "a-new-startup"
     Description: "Used for the unique naming of resources and exports.  You probably should not change this."
+
+  Environment:
+    Type: String
+    Default: dev
+    Description: "Environment name for the SSM parameters created."
     
 Resources:
 
   StartupSignupsTable:
     Type: AWS::DynamoDB::Table
-    Description: A simple key/value table to store the info for anyone interested in our startup.
     Properties:
       # No TableName specified, a dynamic name will be generated.
       BillingMode: 'PAY_PER_REQUEST'
@@ -27,11 +35,9 @@ Resources:
       
   NewSignupQueue: 
     Type: AWS::SQS::Queue
-    Description: A Queue for the A-New-Startup application
-      
+
   NewSignupTopic:
     Type: AWS::SNS::Topic
-    Description: A Topic so we can publish messages to inform someone when a person signs up.
     Properties:
       Subscription:
       - Endpoint:
@@ -53,15 +59,35 @@ Resources:
           Resource:
             Fn::GetAtt: [NewSignupQueue, Arn]
           Sid: Allow-SNS-SendMessage
-        Version: '2008-10-17'
+        Version: '2012-10-17'
       Queues:
       - {Ref: NewSignupQueue}
   
+  #
+  # NOTE: The following are referenced by the scripts/start_server script.
+  # When running running on EC2, the CodeDeploy agent will execute that as a hook.
+  # These have the "ENVIRONMENT" embedded in them - here it's dev (for development)
+  # If you wanted to extend for there to be a qa environment you'd have to make changes here.
+  #
+  # These can also be referenced when creating a container image - to set as appropriate the
+  # Environment variables of the container image
+  # See build_container as an example
+  #
+  # However, when running in ECS or EKS, we use the facilities of those orchestrators to set the environment variables
+  # (For ECS in the "Task Definiton" and for EKS in the Deployment / podspec)
+  #
+  
   SSMParamAccount:
     Type: AWS::SSM::Parameter
-    Description: Store the Account ID in an SSM parameter, the NodeJS code will access this as needed.
     Properties:
-      Name: /a-new-startup/dev/aws-account
+      Name: 
+        !Sub
+          - '/${Param}'
+          - Param: !Join
+            - '/'
+            - - !Ref Prefix
+              - !Ref Environment
+              - "aws-account"
       Type: String
       Value: !Ref AWS::AccountId
       Tags:
@@ -69,9 +95,15 @@ Resources:
 
   SSMParamTable:
     Type: AWS::SSM::Parameter
-    Description: The NodeJS code will retrieve the name of the table it is to be updating from this Parameter
     Properties:
-      Name: /a-new-startup/dev/tablename
+      Name: 
+        !Sub
+          - '/${Param}'
+          - Param: !Join
+            - '/'
+            - - !Ref Prefix
+              - !Ref Environment
+              - "tablename"
       Type: String
       Value: !Ref StartupSignupsTable
       Tags:
@@ -79,34 +111,19 @@ Resources:
 
   SSMParamTopic:
     Type: AWS::SSM::Parameter
-    Description: The NodeJS code will retrieve the ARN of the SNS topic from this parameter.
     Properties:
-      Name: /a-new-startup/dev/topicarn
+      Name:
+        !Sub
+          - '/${Param}'
+          - Param: !Join
+            - '/'
+            - - !Ref Prefix
+              - !Ref Environment
+              - "topicarn"
       Type: String
       Value: !Ref NewSignupTopic
       Tags:
         demo: a-new-startup
-
-  InstanceProfileRole:
-    Type: AWS::IAM::Role
-    Description: The Role to be used by the EC2 instance - includes application permissions and SSM
-    Properties:
-      # NOTE: No RoleName specified, because IAM names are cross-region. We need it to be uniquely named.
-      Description: Role for EC2 Instance Profile for A-New-Startup
-      AssumeRolePolicyDocument:
-        Version: "2012-10-17"
-        Statement:
-          - Effect: Allow
-            Principal:
-              Service:
-                - ec2.amazonaws.com
-            Action:
-              - 'sts:AssumeRole'
-      ManagedPolicyArns:
-        # Use this Managed Policy so we can use SSM
-        - "arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore"
-        # Also will add the app permissions via the policy defined next
-        - !Ref AppManagedPolicy
 
   AppManagedPolicy:
       Type: AWS::IAM::ManagedPolicy
@@ -191,16 +208,8 @@ Resources:
 
 Outputs:
 
-  InstanceProfileRoleName:
-    Value: !Ref InstanceProfileRole
-    Export:
-      Name: !Join ['-', [!Ref Prefix, 'pipeline-InstanceProfileRoleName']]
-      
-  AppManagedPolicy:
-    Value: !Ref AppManagedPolicy
-    Export:
-      Name: !Join ['-', [!Ref Prefix, 'pipeline-AppManagedPolicy']]
-      
+  # Using the technique of chained stacks, other CFN stacks will need these values.
+
   TableName:
     Value: !Ref StartupSignupsTable
     Export:
@@ -215,3 +224,8 @@ Outputs:
     Value: !GetAtt NewSignupQueue.Arn
     Export:
       Name: !Join ['-', [!Ref Prefix, 'QueueArn']]
+
+  AppManagedPolicy:
+    Value: !Ref AppManagedPolicy
+    Export:
+      Name: !Join ['-', [!Ref Prefix, 'AppManagedPolicy']]

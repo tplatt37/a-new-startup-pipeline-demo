@@ -427,6 +427,77 @@ Resources:
                   Resource: !Join 
                     - ''
                     - - '*'
+
+  CFNDeployRole:
+      Type: 'AWS::IAM::Role'
+      Properties:
+        AssumeRolePolicyDocument:
+          Version: 2012-10-17
+          Statement:
+            - Effect: Allow
+              Principal:
+                Service:
+                  - cloudformation.amazonaws.com
+              Action: 'sts:AssumeRole'
+        Path: /
+        Policies:
+          - PolicyName: !Join
+              - '-'
+              - - !Ref Prefix
+                - "cfn-deploy-backend"
+
+            PolicyDocument:
+              Version: 2012-10-17
+              Statement:
+                - Effect: Allow
+                  Action:
+                    - 'iam:PassRole'
+                    - 'iam:CreateRole'
+                    - 'iam:DeleteRole'
+                    - 'iam:AttachRolePolicy'
+                    - 'iam:DeleteRolePolicy'
+                    - 'iam:DetachRolePolicy'
+                    - 'iam:PutRolePolicy'
+                    - 'iam:GetRole'
+                    - 'iam:CreatePolicy'
+                  Resource: !Join 
+                    - ''
+                    - - '*'
+                - Effect: Allow
+                  Action:
+                    - 'cloudformation:CreateChangeSet'
+                    - 'cloudformation:ExecuteChangeSet'
+                    - 'cloudformation:DescribeStacks'
+                    - 'cloudwatch:*'
+                    - 'ecs:*'
+                    - 'ec2:CreateSecurityGroup'
+                    - 'ec2:DescribeSecurityGroups'
+                    - 'ec2:DeleteSecurityGroup'
+                    - 'elasticloadbalancing:CreateTargetGroup'
+                    - 'elasticloadbalancing:DeleteTargetGroup'
+                    - 'elasticloadbalancing:DescribeTargetGroups'
+                    - 'elasticloadbalancing:ModifyTargetGroupAttributes'
+                    - 'elasticloadbalancing:DescribeListeners'
+                    - 'elasticloadbalancing:CreateListener'
+                    - 'elasticloadbalancing:DeleteListener'
+                    - 'logs:CreateLogGroup'
+                    - 'logs:DeleteLogGroup'
+                    - 'logs:Describe*'
+                    - 'logs:CreateLogStream'
+                    - 'logs:PutLogEvents'
+                    - 'ec2:AuthorizeSecurityGroupIngress'
+                    # TODO: Make more precise
+                    - 'dynamodb:*'
+                    - 'sqs:*'
+                    - 'sns:*'
+                    - 'iam:GetPolicy'
+                    - 'iam:ListPolicyVersions'
+                    - 'iam:DeletePolicy'
+                    - 'ssm:PutParameter'
+                    - 'ssm:DeleteParameter'
+                    - 'ssm:AddTagsToResource'
+                  Resource: '*'
+
                     
 Outputs:
   ArtifactStoreBucket:
@@ -464,3 +535,8 @@ Outputs:
     Value: !GetAtt CodePipelineServiceRole.Arn
     Export:
       Name: !Join ['-', [!Ref Prefix, 'CodePipelineServiceRole']]
+      
+  CFNDeployRole:
+    Value: !GetAtt CFNDeployRole.Arn
+    Export:
+      Name: !Join ['-', [!Ref Prefix, 'CFNDeployRole']]

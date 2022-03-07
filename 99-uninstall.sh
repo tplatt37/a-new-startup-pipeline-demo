@@ -46,14 +46,14 @@ echo "Deleting ($STACK_NAME) ..."
 aws cloudformation delete-stack --stack-name $STACK_NAME
 aws cloudformation wait stack-delete-complete --stack-name $STACK_NAME 
 
-# .... and this one...
-STACK_NAME=a-new-startup-build-projects
+# ... and this one
+STACK_NAME=a-new-startup-backend
 echo "Deleting ($STACK_NAME) ..."
 aws cloudformation delete-stack --stack-name $STACK_NAME
 aws cloudformation wait stack-delete-complete --stack-name $STACK_NAME 
 
-# ... and this one
-STACK_NAME=a-new-startup-backend
+# .... and this one...
+STACK_NAME=a-new-startup-build-projects
 echo "Deleting ($STACK_NAME) ..."
 aws cloudformation delete-stack --stack-name $STACK_NAME
 aws cloudformation wait stack-delete-complete --stack-name $STACK_NAME 

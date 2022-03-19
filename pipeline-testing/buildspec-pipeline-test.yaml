@@ -12,11 +12,11 @@ phases:
     commands:
       - BUCKET_NAME=$(aws cloudformation list-exports --query "Exports[?Name=='$PREFIX-CodeBucket'].Value" --output text)
       - echo "BUCKET_NAME=$BUCKET_NAME."
-      - echo "pre_build" >> report.txt
+      - PUBLIC_SUBNETS=$(aws cloudformation list-exports --query "Exports[?Name=='$PREFIX-PublicSubnetIds'].Value" --output text)
+      - echo "PUBLIC_SUBNETS=$PUBLIC_SUBNETS."
   build:
     commands:
-      - echo "build" >> report.txt
-
+      - ./install.sh "$BUCKET_NAME" "$PUBLIC_SUBNETS"
 
 artifacts:
   files:

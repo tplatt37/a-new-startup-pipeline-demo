@@ -26,10 +26,7 @@ phases:
       - aws secretsmanager get-secret-value --secret-id "github-pipeline-private-key-1" --query "SecretString" --output text | jq -r '.privatekeybase64' | base64 -d > ~/.ssh/github_pipeline
       
       # Update the ~/.ssh/config so we use it automatically when working with Github.
-      - cat << EoF > ~/.ssh/config
-      - Host github.com
-      -    IdentityFile ~/.ssh/github_pipeline
-      - EoF
+      - printf '%s\n%s\n' "Host github.com" "IdentityFile ~/.ssh/github_pipeline" >> ~/.ssh/config
       - cat ~/.ssh/config
       - chmod 600 ~/.ssh/github_pipeline
       

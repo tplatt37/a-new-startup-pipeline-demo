@@ -10,10 +10,29 @@ phases:
 
   pre_build:
     commands:
+    
+      # Grab some Stack Exports
       - BUCKET_NAME=$(aws cloudformation list-exports --query "Exports[?Name=='$PREFIX-CodeBucket'].Value" --output text)
       - echo "BUCKET_NAME=$BUCKET_NAME."
       - PUBLIC_SUBNETS=$(aws cloudformation list-exports --query "Exports[?Name=='$PREFIX-PublicSubnetIds'].Value" --output text)
       - echo "PUBLIC_SUBNETS=$PUBLIC_SUBNETS."
+      
+      # Get Private Key - from SecretsManager. It MUST be in a Secret named as "github-pipeline-private-key-1"
+      - KEY_NAME=github-pipeline-private-key-1
+      - SECRETARN=$(aws secretsmanager describe-secret --secret-id $KEY_NAME --query "ARN" --output text)
+      
+      # Retrieve that value, decode from base64, and write it to ~/.ssh
+      - mkdir ~/.ssh
+      - aws secretsmanager get-secret-value --secret-id "github-pipeline-private-key-1" --query "SecretString" --output text | jq -r '.privatekeybase64' | base64 -d > ~/.ssh/github_pipeline
+      
+      # Update the ~/.ssh/config so we use it automatically when working with Github.
+      - cat << EoF > ~/.ssh/config
+      - Host github.com
+      -    IdentityFile ~/.ssh/github_pipeline
+      - EoF
+      - cat ~/.ssh/config
+      - chmod 600 ~/.ssh/github_pipeline
+      
   build:
     commands:
       - ./install.sh "$BUCKET_NAME" "$PUBLIC_SUBNETS"

@@ -5,10 +5,13 @@ phases:
     runtime-versions:
       python: 3.8
     commands:
+      - PREFIX=zzz-test-a-new-startup
       - echo "install" >> report.txt
 
   pre_build:
     commands:
+      - BUCKET_NAME=$(aws cloudformation list-exports --query "Exports[?Name=='$PREFIX-CodeBucket'].Value" --output text)
+      - echo "BUCKET_NAME=$BUCKET_NAME."
       - echo "pre_build" >> report.txt
   build:
     commands:

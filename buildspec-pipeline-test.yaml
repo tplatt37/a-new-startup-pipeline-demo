@@ -1,0 +1,20 @@
+version: 0.2
+
+phases:
+  install:
+    runtime-versions:
+      python: 3.8
+    commands:
+      - echo "install" >> report.txt
+
+  pre_build:
+    commands:
+      - echo "pre_build" >> report.txt
+  build:
+    commands:
+      - echo "build" >> report.txt
+
+
+artifacts:
+  files:
+    - report.txt 

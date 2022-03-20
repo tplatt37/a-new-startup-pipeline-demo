@@ -47,7 +47,7 @@ echo "Copying ZIP to $BUCKET, and creating CodeCommit repo..."
 ./01-repo.sh $BUCKET
 
 STACK_NAME=$PREFIX-repo
-aws cloudformation wait stack-create-complete --stack-name $STACK_NAME
+aws cloudformation wait stack-exists --stack-name $STACK_NAME
 STACK_STATUS=$(aws cloudformation describe-stacks --stack-name $STACK_NAME --query "Stacks[].StackStatus" --output text)
 if [[ $STACK_STATUS != "CREATE_COMPLETE" ]] && [[ $STACK_STATUS != "UPDATE_COMPLETE" ]]; then
         echo "Create or Update of Stack $STACK_NAME failed: $STACK_STATUS.  Cannot continue..."
@@ -57,7 +57,7 @@ fi
 echo "Creating backend infra ..."
 STACK_NAME=$PREFIX-backend
 ./02-backend.sh 
-aws cloudformation wait stack-create-complete --stack-name $STACK_NAME
+aws cloudformation wait stack-exists --stack-name $STACK_NAME
 STACK_STATUS=$(aws cloudformation describe-stacks --stack-name $STACK_NAME --query "Stacks[].StackStatus" --output text)
 if [[ $STACK_STATUS != "CREATE_COMPLETE" ]] && [[ $STACK_STATUS != "UPDATE_COMPLETE" ]]; then
         echo "Create or Update of Stack $STACK_NAME failed: $STACK_STATUS.  Cannot continue..."
@@ -67,7 +67,7 @@ fi
 echo "Creating compute layer..."
 STACK_NAME=$PREFIX-compute
 ./03-compute.sh $SUBNETS_COMMADELIMITED
-aws cloudformation wait stack-create-complete --stack-name $STACK_NAME
+aws cloudformation wait stack-exists --stack-name $STACK_NAME
 STACK_STATUS=$(aws cloudformation describe-stacks --stack-name $STACK_NAME --query "Stacks[].StackStatus" --output text)
 if [[ $STACK_STATUS != "CREATE_COMPLETE" ]] && [[ $STACK_STATUS != "UPDATE_COMPLETE" ]]; then
         echo "Create or Update of Stack $STACK_NAME failed: $STACK_STATUS.  Cannot continue..."
@@ -77,7 +77,7 @@ fi
 echo "Creating Build Projects..."
 STACK_NAME=$PREFIX-build-projects
 ./04-build-projects.sh
-aws cloudformation wait stack-create-complete --stack-name $STACK_NAME
+aws cloudformation wait stack-exists --stack-name $STACK_NAME
 STACK_STATUS=$(aws cloudformation describe-stacks --stack-name $STACK_NAME --query "Stacks[].StackStatus" --output text)
 if [[ $STACK_STATUS != "CREATE_COMPLETE" ]] && [[ $STACK_STATUS != "UPDATE_COMPLETE" ]]; then
         echo "Create or Update of Stack $STACK_NAME failed: $STACK_STATUS.  Cannot continue..."
@@ -87,7 +87,7 @@ fi
 echo "Creating Pipeline..." 
 STACK_NAME=$PREFIX-pipeline
 ./05-pipeline.sh
-aws cloudformation wait stack-create-complete --stack-name $STACK_NAME
+aws cloudformation wait stack-exists --stack-name $STACK_NAME
 STACK_STATUS=$(aws cloudformation describe-stacks --stack-name $STACK_NAME --query "Stacks[].StackStatus" --output text)
 if [[ $STACK_STATUS != "CREATE_COMPLETE" ]] && [[ $STACK_STATUS != "UPDATE_COMPLETE" ]]; then
         echo "Create or Update of Stack $STACK_NAME failed: $STACK_STATUS.  Cannot continue..."

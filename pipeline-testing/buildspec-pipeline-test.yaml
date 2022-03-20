@@ -5,7 +5,8 @@ phases:
     runtime-versions:
       docker: 19
     commands:
-      - PREFIX=zzz-test-a-new-startup
+      - PREFIX=zzz-test-a-new-startup-ec2
+      - TARGET_PREFIX=a-new-startup
       
       # Gotta install AWS CLI v2
       - pip3 uninstall awscli -y
@@ -49,10 +50,10 @@ phases:
       - ./install.sh "$BUCKET_NAME" "$PUBLIC_SUBNETS"
       
       # Wait until ALB Provisioned
-      - ALB_ARN=$(aws cloudformation list-exports --query "Exports[?Name=='a-new-startup-ALBARN'].Value" --output text)
+      - ALB_ARN=$(aws cloudformation list-exports --query "Exports[?Name=='$TARGET_PREFIX-ALBARN'].Value" --output text)
       - echo "ALB_ARN=$ALB_ARN."
       - aws elbv2 wait load-balancer-available --load-balancer-arns $ALB_ARN 
-      - ALB_DNS=$(aws cloudformation list-exports --query "Exports[?Name=='a-new-startup-ALBDNS'].Value" --output text)
+      - ALB_DNS=$(aws cloudformation list-exports --query "Exports[?Name=='$TARGET_PREFIX-ALBDNS'].Value" --output text)
       - echo "ALB_DNS=$ALB_DNS."
       # NOTE: http://
       - curl "http://$ALB_DNS" >> report.txt
@@ -65,10 +66,10 @@ phases:
       - ./96-release-change.sh "a-new-startup" 20
       
       # Wait until ALB Provisioned
-      - ALB_ARN=$(aws cloudformation list-exports --query "Exports[?Name=='a-new-startup-ALBARN'].Value" --output text)
+      - ALB_ARN=$(aws cloudformation list-exports --query "Exports[?Name=='$TARGET_PREFIX-ALBARN'].Value" --output text)
       - echo "ALB_ARN=$ALB_ARN."
       - aws elbv2 wait load-balancer-available --load-balancer-arns $ALB_ARN 
-      - ALB_DNS=$(aws cloudformation list-exports --query "Exports[?Name=='a-new-startup-ALBDNS'].Value" --output text)
+      - ALB_DNS=$(aws cloudformation list-exports --query "Exports[?Name=='$TARGET_PREFIX-ALBDNS'].Value" --output text)
       - echo "ALB_DNS=$ALB_DNS."
       # NOTE: http://
       - curl "http://$ALB_DNS" >> report.txt
@@ -82,10 +83,10 @@ phases:
       - ./96-release-change.sh "a-new-startup" 20
 
       # Wait until ALB Provisioned
-      - ALB_ARN=$(aws cloudformation list-exports --query "Exports[?Name=='a-new-startup-ALBARN'].Value" --output text)
+      - ALB_ARN=$(aws cloudformation list-exports --query "Exports[?Name=='$TARGET_PREFIX-ALBARN'].Value" --output text)
       - echo "ALB_ARN=$ALB_ARN."
       - aws elbv2 wait load-balancer-available --load-balancer-arns $ALB_ARN 
-      - ALB_DNS=$(aws cloudformation list-exports --query "Exports[?Name=='a-new-startup-ALBDNS'].Value" --output text)
+      - ALB_DNS=$(aws cloudformation list-exports --query "Exports[?Name=='$TARGET_PREFIX-ALBDNS'].Value" --output text)
       - echo "ALB_DNS=$ALB_DNS."
       # NOTE: http://
       - curl "http://$ALB_DNS" >> report.txt

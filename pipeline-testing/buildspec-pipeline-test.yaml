@@ -19,10 +19,9 @@ phases:
   pre_build:
     commands:
     
-      # Create the VPC we'll need.  (We let the trainer provide an existing VPC - so we have to simulate that here)
-      - aws cloudformation create-stack --template-file $CODEBUILD_SRC_DIR/pipeline-testing/infra.yaml --stack-name "$PREFIX-infra"
-      - aws cloudformation wait stack-exists --stack-name "$PREFIX-infra"
-    
+      # NOTE: The pipeline should have a stage that creates the $PREFIX-infra stack before this CodeBuild project is invoked.
+      # This is where the Bucket and Subnets come from ...
+      
       # Grab some Stack Exports
       - BUCKET_NAME=$(aws cloudformation list-exports --query "Exports[?Name=='$PREFIX-CodeBucket'].Value" --output text)
       - echo "BUCKET_NAME=$BUCKET_NAME."

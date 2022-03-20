@@ -20,8 +20,7 @@ ACCOUNTID=$(aws sts get-caller-identity --query 'Account' | sed s/\"//g)
 
 # This is the repository we'll need to work with
 REPOSITORY_URI=$ACCOUNTID.dkr.ecr.$REGION.amazonaws.com/a-new-startup-test-base-image
-
-echo $REPOSITORY_URI
+echo "REPOSITORY_URI=$REPOSITORY_URI."
 
 # Must be logged into ECR - it's a private repo
 aws ecr get-login-password --region $REGION | docker login --username AWS --password-stdin $REPOSITORY_URI
@@ -30,3 +29,4 @@ docker tag selenium/standalone-chrome:$VERSION_TAG $REPOSITORY_URI:latest
 
 docker push $REPOSITORY_URI:latest
 
+echo "Done."

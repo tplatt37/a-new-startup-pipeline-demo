@@ -1,3 +1,5 @@
 #!/bin/bash
 
-aws cloudformation deploy --template-file backend.yaml --stack-name "a-new-startup-backend" --capabilities CAPABILITY_IAM
+PREFIX=a-new-startup
+
+aws cloudformation deploy --template-file backend.yaml --stack-name "$PREFIX-backend" --capabilities CAPABILITY_IAM

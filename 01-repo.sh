@@ -8,6 +8,8 @@ if [ -z $1 ]; then
 fi
 BUCKET=$1
 
+PREFIX=a-new-startup
+
 # First, we create a Zip of the latest A-New-Startup app code from Github,
 # and copy it into the S3 bucket.  Cloudformation will use that to seed the CC repo.
 
@@ -36,13 +38,14 @@ cd a-new-startup-ui-tests-github && zip -r --exclude=*.git/* ../a-new-startup-ui
 aws s3 cp a-new-startup-ui-tests.zip s3://$BUCKET
 
 echo "Setting up CodeCommit repos and ECR repos..."
-aws cloudformation deploy --template-file repo.yaml --stack-name a-new-startup-repo --parameter-overrides CodeBucketName=$BUCKET
+STACK_NAME=$PREFIX-repo
+aws cloudformation deploy --template-file repo.yaml --stack-name $STACK_NAME --parameter-overrides CodeBucketName=$BUCKET
 
-echo "Waiting for stack update"
+echo "Waiting for stack update..."
 
 #
 # Now that our ECR repo is there, pull and push the selenium/standalone-chrome image
 # This prevents our demo from getting failures to due to docker.io throttling.
 #
-source ./97-pull-base-image.sh
+./97-pull-base-image.sh
 

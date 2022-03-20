@@ -21,7 +21,7 @@ fi
 BUCKET=$1
 
 if [ -z $2 ]; then
-        echo "Need a comma delimited list of two Public subnet Ids. Exiting..."
+        echo "Also need a comma delimited list of two Public subnet Ids. Exiting..."
         exit 0
 fi
 SUBNETS_COMMADELIMITED=$2
@@ -31,7 +31,7 @@ echo "Creating in $REGION..."
 
 echo "Validating VPC and Subnets..."
 SUBNETS=$(echo $SUBNETS_COMMADELIMITED | sed 's/,/ /g')
-echo "Subnets=$SUBNETS"
+echo "Subnets=$SUBNETS."
 
 aws ec2 describe-subnets --subnet-ids $SUBNETS 1>/dev/null
 if [[ $? -ne 0 ]]; then
@@ -41,30 +41,45 @@ fi
 
 # Grab the VpcId off the first subnet. This is needed for the Security Group and Target Group.
 VPC_ID=$(aws ec2 describe-subnets --subnet-ids $SUBNETS --query 'Subnets[0].VpcId' --output text)
-echo "VpcId=$VPC_ID"
+echo "VpcId=$VPC_ID."
 
 echo "Copying ZIP to $BUCKET, and creating CodeCommit repo..."
-source 01-repo.sh $BUCKET
+./01-repo.sh $BUCKET
 
-aws cloudformation wait stack-create-complete --stack-name "a-new-startup-repo"
+STACK_NAME=$PREFIX-repo
+aws cloudformation wait stack-create-complete --stack-name $STACK_NAME
+STACK_STATUS=$(aws cloudformation describe-stacks --stack-name $STACK_NAME --query "Stacks[].StackStatus" --output text)
+if [[ $STACK_STATUS != "CREATE_COMPLETE" ]] && [[ $STACK_STATUS != "UPDATE_COMPLETE" ]]; then
+        echo "Create or Update of Stack $STACK_NAME failed: $STACK_STATUS.  Cannot continue..."
+        exit 1
+fi
+
 
 echo "Creating backend infra ..."
-source 02-backend.sh 
+STACK_NAME=$PREFIX-backend
+./02-backend.sh 
+aws cloudformation wait stack-create-complete --stack-name $STACK_NAME
+STACK_STATUS=$(aws cloudformation describe-stacks --stack-name $STACK_NAME --query "Stacks[].StackStatus" --output text)
+if [[ $STACK_STATUS != "CREATE_COMPLETE" ]] && [[ $STACK_STATUS != "UPDATE_COMPLETE" ]]; then
+        echo "Create or Update of Stack $STACK_NAME failed: $STACK_STATUS.  Cannot continue..."
+        exit 1
+fi
 
-aws cloudformation wait stack-create-complete --stack-name "a-new-startup-backend"
+exit 0
+
 
 echo "Creating compute layer..."
-source 03-compute.sh $SUBNETS_COMMADELIMITED
+./03-compute.sh $SUBNETS_COMMADELIMITED
 
 aws cloudformation wait stack-create-complete --stack-name "a-new-startup-compute"
 
 echo "Creating Build Projects..."
-source 04-build-projects.sh
+./04-build-projects.sh
 
 aws cloudformation wait stack-create-complete --stack-name "a-new-startup-pipeline"
 
 echo "Creating Pipeline..." 
-source 05-pipeline.sh
+./05-pipeline.sh
 
 echo "Done..."
 

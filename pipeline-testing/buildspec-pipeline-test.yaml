@@ -5,7 +5,7 @@ phases:
     runtime-versions:
       docker: 19
     commands:
-      - PREFIX=zzz-test-a-new-startup-ec2
+      - PREFIX=zzz-a-new-startup-test-ec2
       - TARGET_PREFIX=a-new-startup
       
       # Gotta install AWS CLI v2

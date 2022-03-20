@@ -14,7 +14,6 @@ Parameters:
 
   Prefix:
     Type: String
-    Default: "zzz-test-a-new-startup"
     Description: "A Prefix to use on the resource names and exports (To ensure uniqueness)."
 
   VpcBlock:

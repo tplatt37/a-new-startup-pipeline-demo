@@ -181,11 +181,11 @@ Outputs:
     Export:
       Name: !Join ['-', [!Ref Prefix, 'ALBDNS']]
 
-  ALB:
-    Description: The ALB - use this to check and see if it is provisioned yet.
+  ALBARN:
+    Description: The ALB ARN - use this with a waiter to check and see if it is provisioned yet.
     Value: !Ref ApplicationLoadBalancer
     Export:
-      Name: !Join ['-', [!Ref Prefix, 'ALB']]
+      Name: !Join ['-', [!Ref Prefix, 'ALBARN']]
   
   InstanceProfileRoleName:
     Value: !Ref InstanceProfileRole

@@ -19,6 +19,10 @@ phases:
   pre_build:
     commands:
     
+      # Create the VPC we'll need.  (We let the trainer provide an existing VPC - so we have to simulate that here)
+      - aws cloudformation create-stack --template-file $CODEBUILD_SRC_DIR/pipeline-testing/infra.yaml --stack-name "$PREFIX-infra"
+      - aws cloudformation wait stack-exists --stack-name "$PREFIX-infra"
+    
       # Grab some Stack Exports
       - BUCKET_NAME=$(aws cloudformation list-exports --query "Exports[?Name=='$PREFIX-CodeBucket'].Value" --output text)
       - echo "BUCKET_NAME=$BUCKET_NAME."
@@ -40,6 +44,7 @@ phases:
       
   build:
     commands:
+      # Run the install
       - ./install.sh "$BUCKET_NAME" "$PUBLIC_SUBNETS"
       
       # Wait until ALB Provisioned
@@ -94,10 +99,11 @@ phases:
       # Count the number of stacks remaining that start with "a-new-startup-"
       # If > 0 , assume uninstall failed.
       - NUM_STACKS_REMAINING=$(aws cloudformation describe-stacks --query "Stacks[].StackName" | grep '"a-new-startup-' | wc -l)
-      - if [[ $NUM_STACKS_REMAINING -ne 0 ]]; then
-      - echo "There are stacks remaining - it looks like uninstall failed."
-      - exit 6
-      - fi
+      - if [[ $NUM_STACKS_REMAINING -ne 0 ]]; then echo "There are stacks remaining - it looks like uninstall failed."; exit 6; fi
+      
+      # Delete even the VPC we used. It will be re-created next run.
+      - aws cloudformation delete-stack --stack-name "$PREFIX-infra"
+      - aws cloudformation wait stack-delete-complete --stack-name "$PREFIX-infra"
       
 artifacts:
   files:

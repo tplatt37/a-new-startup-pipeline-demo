@@ -87,11 +87,18 @@ phases:
   post_build:
     commands:
     
-      - ALB_DNS=$(aws cloudformation list-exports --query "Exports[?Name=='a-new-startup-ALBDNS'].Value" --output text)
-      - echo "ALB_DNS=$ALB_DNS."
-      # NOTE: http://
-      - curl "http://$ALB_DNS" >> report.txt
-
+      # After all that , we wipe things clean back to where we started.
+      # (It is a CI/CD Pipeline, after all)
+      - ./99-uninstall.sh --yes
+      
+      # Count the number of stacks remaining that start with "a-new-startup-"
+      # If > 0 , assume uninstall failed.
+      - NUM_STACKS_REMAINING=$(aws cloudformation describe-stacks --query "Stacks[].StackName" | grep '"a-new-startup-' | wc -l)
+      - if [[ $NUM_STACKS_REMAINING -ne 0 ]]; then
+      - echo "There are stacks remaining - it looks like uninstall failed."
+      - exit 6
+      - fi
+      
 artifacts:
   files:
     - report.txt 

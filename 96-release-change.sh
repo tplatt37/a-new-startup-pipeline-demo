@@ -28,12 +28,13 @@ echo "EXECUTION_ID=$EXECUTION_ID."
 ATTEMPTS=0
 
 SUCCESS_COUNT=0
+SLEEP_SECONDS=15
 while [[ $SUCCESS_COUNT -eq 0 && $ATTEMPTS -lt $MAX ]]; do
-    sleep 15
+    sleep $SLEEP_SECONDS
     # Look for Execution Status to be become "Succeeded"
     SUCCESS_COUNT=$(aws codepipeline get-pipeline-execution --pipeline-execution-id $EXECUTION_ID --pipeline-name $PIPELINE_NAME --query "pipelineExecution.status" --output text | grep Succeeded | wc -l)
     ((ATTEMPTS=ATTEMPTS+1))
-    echo "Waiting for pipeline execution status to == Succeeded... ($ATTEMPTS attempts of $MAX)..."
+    echo "Waiting $SLEEP_SECONDSs for pipeline execution status to == Succeeded... ($ATTEMPTS attempts of $MAX)..."
 done
 
 # If we maxed out, fail the build project (non zero exit)

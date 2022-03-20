@@ -183,7 +183,7 @@ Outputs:
 
   ALB:
     Description: The ALB - use this to check and see if it is provisioned yet.
-    Value: !GetAtt ApplicationLoadBalancer
+    Value: !Ref ApplicationLoadBalancer
     Export:
       Name: !Join ['-', [!Ref Prefix, 'ALB']]
   

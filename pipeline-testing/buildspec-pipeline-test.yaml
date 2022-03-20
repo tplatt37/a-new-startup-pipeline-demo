@@ -43,7 +43,7 @@ phases:
       - ./install.sh "$BUCKET_NAME" "$PUBLIC_SUBNETS"
       
       # Wait until ALB Provisioned
-      - ALB_ARN=(aws cloudformation list-exports --query "Exports[?Name=='a-new-startup-ALB'].Value" --output text)
+      - ALB_ARN=$(aws cloudformation list-exports --query "Exports[?Name=='a-new-startup-ALB'].Value" --output text)
       - echo "ALB_ARN=$ALB_ARN."
       - aws elbv2 wait load-balancer-available --load-balancer-arns $ALB_ARN 
       

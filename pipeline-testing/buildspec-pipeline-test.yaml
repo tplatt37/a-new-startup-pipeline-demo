@@ -66,7 +66,7 @@ phases:
       - ATTEMPTS=0
       # Check up to 40 times (10 minutes, because we sleep 15s in between)
       - MAX=40 
-      - while [ $SUCCESS_COUNT -lt $NUM_STAGES ] && [ $ATTEMPTS -lt $MAX ]
+      - while [[ $SUCCESS_COUNT -lt $NUM_STAGES && $ATTEMPTS -lt $MAX ]]
       - do
       - sleep 15
       - SUCCESS_COUNT=$(aws codepipeline get-pipeline-state --name "a-new-startup" --query "stageStates[].latestExecution.status" | grep Succeeded | wc -l)
@@ -102,7 +102,7 @@ phases:
       - ATTEMPTS=0
       # Check up to 40 times (10 minutes, because we sleep 15s in between)
       - MAX=40 
-      - while [ $SUCCESS_COUNT -lt $NUM_STAGES ] && [ $ATTEMPTS -lt $MAX ]
+      - while [[ $SUCCESS_COUNT -lt $NUM_STAGES && $ATTEMPTS -lt $MAX ]]
       - do
       - sleep 15
       - SUCCESS_COUNT=$(aws codepipeline get-pipeline-state --name "a-new-startup" --query "stageStates[].latestExecution.status" | grep Succeeded | wc -l)

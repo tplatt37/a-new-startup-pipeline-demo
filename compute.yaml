@@ -180,6 +180,12 @@ Outputs:
     Value: !GetAtt ApplicationLoadBalancer.DNSName
     Export:
       Name: !Join ['-', [!Ref Prefix, 'ALBDNS']]
+
+  ALB:
+    Description: The ALB - use this to check and see if it is provisioned yet.
+    Value: !GetAtt ApplicationLoadBalancer
+    Export:
+      Name: !Join ['-', [!Ref Prefix, 'ALB']]
   
   InstanceProfileRoleName:
     Value: !Ref InstanceProfileRole

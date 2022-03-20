@@ -13,6 +13,8 @@ phases:
       - unzip awscliv2.zip 1> /dev/null
       - ./aws/install
       - aws --version
+      
+      - curl --version
 
   pre_build:
     commands:
@@ -39,6 +41,18 @@ phases:
   build:
     commands:
       - ./install.sh "$BUCKET_NAME" "$PUBLIC_SUBNETS"
+      
+      # Wait until ALB Provisioned
+      - ALB_ARN=(aws cloudformation list-exports --query "Exports[?Name=='a-new-startup-ALB'].Value" --output text)
+      - echo "ALB_ARN=$ALB_ARN."
+      - aws elbv2 wait load-balancer-available --load-balancer-arns $ALB_ARN 
+      
+  post_build:
+    commands:
+    
+      - ALB_DNS=$(aws cloudformation list-exports --query "Exports[?Name=='a-new-startup-ALBDNS'].Value" --output text)
+      - echo "ALB_DNS=$ALB_DNS."
+      - curl "https://$ALB_DNS" >> report.txt
 
 artifacts:
   files:

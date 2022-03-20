@@ -37,6 +37,8 @@ phases:
       - aws secretsmanager get-secret-value --secret-id "$SECRET_ARN" --query "SecretString" --output text | jq -r '.privatekeybase64' | base64 -d > ~/.ssh/github_pipeline
       
       # Update the ~/.ssh/config so we use it automatically when working with Github.
+      # The Github repo is the source of this pipeline, but there's a DIFFERENT Github repo (the a-new-startup application code)
+      # that we have to access directly - which is why we need this key.  See ./01-repo.sh ...
       - printf '%s\n%s\n' "Host github.com" "IdentityFile ~/.ssh/github_pipeline" >> ~/.ssh/config
       - cat ~/.ssh/config
       - chmod 600 ~/.ssh/github_pipeline
@@ -100,6 +102,13 @@ phases:
       - NUM_STACKS_REMAINING=$(aws cloudformation describe-stacks --query "Stacks[].StackName" | grep '"a-new-startup-' | wc -l)
       - if [[ $NUM_STACKS_REMAINING -ne 0 ]]; then echo "There are stacks remaining - it looks like uninstall failed."; exit 6; fi
       
+      # We need to empty the temporary code bucket before we try and delete the infra stack...
+      - CODE_BUCKET=$(aws cloudformation list-exports --query "Exports[?Name=='$PREFIX-infra'].Value" --output text )
+      - echo "Will empty CODE_BUCKET=$CODE_BUCKET."
+
+      # Empty the artifacts bucket (Otherwise stack delete will fail)
+      - aws s3 rm s3://$CODE_BUCKET --recursive
+
       # Delete even the VPC we used. It will be re-created next run.
       - aws cloudformation delete-stack --stack-name "$PREFIX-infra"
       - aws cloudformation wait stack-delete-complete --stack-name "$PREFIX-infra"

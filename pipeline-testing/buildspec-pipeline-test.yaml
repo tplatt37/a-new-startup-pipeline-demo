@@ -46,6 +46,83 @@ phases:
       - ALB_ARN=$(aws cloudformation list-exports --query "Exports[?Name=='a-new-startup-ALBARN'].Value" --output text)
       - echo "ALB_ARN=$ALB_ARN."
       - aws elbv2 wait load-balancer-available --load-balancer-arns $ALB_ARN 
+      - ALB_DNS=$(aws cloudformation list-exports --query "Exports[?Name=='a-new-startup-ALBDNS'].Value" --output text)
+      - echo "ALB_DNS=$ALB_DNS."
+      # NOTE: http://
+      - curl "http://$ALB_DNS" >> report.txt
+      
+      # Now, add test stage - this includes a containerized UI level test
+      - ./06-add-test-stage.sh
+
+      # Release latest change
+      - aws codepipeline start-pipeline-execution --name "a-new-startup"
+      - sleep 15
+      
+      # Wait for the build pipeline to complete.
+      # There's 3 Stages in the pipeline, all have to be completed successfully before we move on
+      # There is no wait/waiter for codepipeline, unfortunately
+      - NUM_STAGES=3
+      - SUCCESS_COUNT=0
+      - ATTEMPTS=0
+      # Check up to 40 times (10 minutes, because we sleep 15s in between)
+      - MAX=40 
+      - while [ $SUCCESS_COUNT -lt $NUM_STAGES ] && [ $ATTEMPTS -lt $MAX ]
+      - do
+      - sleep 15
+      - SUCCESS_COUNT=$(aws codepipeline get-pipeline-state --name "a-new-startup" --query "stageStates[].latestExecution.status" | grep Succeeded | wc -l)
+      - ATTEMPTS=ATTEMPTS+1
+      - echo "Number of Successul stages=$SUCCESS_COUNT (Waiting for $NUM_STAGES)... ($ATTEMPTS of $MAX)..."
+      - done
+      # If we maxed out, fail the build project (non zero exit)
+      - if [[ $ATTEMPTS -eq $MAX ]]; then
+      - exit 5  
+      - fi
+
+      # Wait until ALB Provisioned
+      - ALB_ARN=$(aws cloudformation list-exports --query "Exports[?Name=='a-new-startup-ALBARN'].Value" --output text)
+      - echo "ALB_ARN=$ALB_ARN."
+      - aws elbv2 wait load-balancer-available --load-balancer-arns $ALB_ARN 
+      - ALB_DNS=$(aws cloudformation list-exports --query "Exports[?Name=='a-new-startup-ALBDNS'].Value" --output text)
+      - echo "ALB_DNS=$ALB_DNS."
+      # NOTE: http://
+      - curl "http://$ALB_DNS" >> report.txt
+
+      # Now, make it the full pipeline. This pipeline will also setup the backend/infra.
+      - ./07-full-pipeline.sh
+      
+      # Release latest change
+      - aws codepipeline start-pipeline-execution --name "a-new-startup"
+      - sleep 15
+      
+      # Wait for the build pipeline to complete.
+      # There's 4 Stages in this version of the pipeline, all have to be completed successfully before we move on
+      # There is no wait/waiter for codepipeline, unfortunately
+      - NUM_STAGES=4
+      - SUCCESS_COUNT=0
+      - ATTEMPTS=0
+      # Check up to 40 times (10 minutes, because we sleep 15s in between)
+      - MAX=40 
+      - while [ $SUCCESS_COUNT -lt $NUM_STAGES ] && [ $ATTEMPTS -lt $MAX ]
+      - do
+      - sleep 15
+      - SUCCESS_COUNT=$(aws codepipeline get-pipeline-state --name "a-new-startup" --query "stageStates[].latestExecution.status" | grep Succeeded | wc -l)
+      - ATTEMPTS=ATTEMPTS+1
+      - echo "Number of Successul stages=$SUCCESS_COUNT (Waiting for $NUM_STAGES)... ($ATTEMPTS of $MAX)..."
+      - done
+      # If we maxed out, fail the build project (non zero exit)
+      - if [[ $ATTEMPTS -eq $MAX ]]; then
+      - exit 5  
+      - fi
+      
+      # Wait until ALB Provisioned
+      - ALB_ARN=$(aws cloudformation list-exports --query "Exports[?Name=='a-new-startup-ALBARN'].Value" --output text)
+      - echo "ALB_ARN=$ALB_ARN."
+      - aws elbv2 wait load-balancer-available --load-balancer-arns $ALB_ARN 
+      - ALB_DNS=$(aws cloudformation list-exports --query "Exports[?Name=='a-new-startup-ALBDNS'].Value" --output text)
+      - echo "ALB_DNS=$ALB_DNS."
+      # NOTE: http://
+      - curl "http://$ALB_DNS" >> report.txt
+      
       
   post_build:
     commands:

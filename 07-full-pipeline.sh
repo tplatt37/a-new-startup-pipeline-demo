@@ -9,7 +9,3 @@ PREFIX=a-new-startup
 
 echo "Creating full CodePipeline pipeline ..."
 aws cloudformation deploy --template-file pipeline-full.yaml --stack-name $PREFIX-pipeline --capabilities CAPABILITY_NAMED_IAM
-
-
-
- 

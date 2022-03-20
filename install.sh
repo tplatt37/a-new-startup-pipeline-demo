@@ -54,7 +54,6 @@ if [[ $STACK_STATUS != "CREATE_COMPLETE" ]] && [[ $STACK_STATUS != "UPDATE_COMPL
         exit 1
 fi
 
-
 echo "Creating backend infra ..."
 STACK_NAME=$PREFIX-backend
 ./02-backend.sh 
@@ -65,25 +64,40 @@ if [[ $STACK_STATUS != "CREATE_COMPLETE" ]] && [[ $STACK_STATUS != "UPDATE_COMPL
         exit 1
 fi
 
-exit 0
-
-
 echo "Creating compute layer..."
+STACK_NAME=$PREFIX-compute
 ./03-compute.sh $SUBNETS_COMMADELIMITED
-
-aws cloudformation wait stack-create-complete --stack-name "a-new-startup-compute"
+aws cloudformation wait stack-create-complete --stack-name $STACK_NAME
+STACK_STATUS=$(aws cloudformation describe-stacks --stack-name $STACK_NAME --query "Stacks[].StackStatus" --output text)
+if [[ $STACK_STATUS != "CREATE_COMPLETE" ]] && [[ $STACK_STATUS != "UPDATE_COMPLETE" ]]; then
+        echo "Create or Update of Stack $STACK_NAME failed: $STACK_STATUS.  Cannot continue..."
+        exit 1
+fi
 
 echo "Creating Build Projects..."
+STACK_NAME=$PREFIX-build-projects
 ./04-build-projects.sh
-
-aws cloudformation wait stack-create-complete --stack-name "a-new-startup-pipeline"
+aws cloudformation wait stack-create-complete --stack-name $STACK_NAME
+STACK_STATUS=$(aws cloudformation describe-stacks --stack-name $STACK_NAME --query "Stacks[].StackStatus" --output text)
+if [[ $STACK_STATUS != "CREATE_COMPLETE" ]] && [[ $STACK_STATUS != "UPDATE_COMPLETE" ]]; then
+        echo "Create or Update of Stack $STACK_NAME failed: $STACK_STATUS.  Cannot continue..."
+        exit 1
+fi
 
 echo "Creating Pipeline..." 
+STACK_NAME=$PREFIX-pipeline
 ./05-pipeline.sh
+aws cloudformation wait stack-create-complete --stack-name $STACK_NAME
+STACK_STATUS=$(aws cloudformation describe-stacks --stack-name $STACK_NAME --query "Stacks[].StackStatus" --output text)
+if [[ $STACK_STATUS != "CREATE_COMPLETE" ]] && [[ $STACK_STATUS != "UPDATE_COMPLETE" ]]; then
+        echo "Create or Update of Stack $STACK_NAME failed: $STACK_STATUS.  Cannot continue..."
+        exit 1
+fi
 
 echo "Done..."
 
 DNSNAME=$(aws cloudformation describe-stacks --stack-name a-new-startup-compute --query "Stacks[0].Outputs[?OutputKey=='ALBDNS'].OutputValue" --output text )
+
 echo "Open this URL in your browser to see the app. NOTE: It won't work until the first run of the Pipeline finishes...give it a few minutes."
 echo " "
 echo "http://$DNSNAME"

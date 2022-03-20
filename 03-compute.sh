@@ -5,6 +5,8 @@ if [ -z $1 ]; then
         exit 0
 fi
 
+PREFIX=a-new-startup
+
 # Sometimes we need a comma delimited list of subnets, other times, space delimited. 
 # use $1 for the comma delimited, and SUBNETS for the space delimited.
 # Subnets are needed for the ALB.
@@ -16,4 +18,4 @@ VPC_ID=$(aws ec2 describe-subnets --subnet-ids $SUBNETS --query 'Subnets[0].VpcI
 echo "VpcId=$VPC_ID"
 
 
-aws cloudformation deploy --template-file compute.yaml --stack-name "a-new-startup-compute" --parameter-overrides VpcId=$VPC_ID Subnets=$1 --capabilities CAPABILITY_NAMED_IAM
+aws cloudformation deploy --template-file compute.yaml --stack-name "$PREFIX-compute" --parameter-overrides VpcId=$VPC_ID Subnets=$1 --capabilities CAPABILITY_NAMED_IAM

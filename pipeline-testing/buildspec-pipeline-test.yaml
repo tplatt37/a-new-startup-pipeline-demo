@@ -6,7 +6,12 @@ phases:
       docker: 19
     commands:
       - PREFIX=zzz-test-a-new-startup
-      - echo "install" >> report.txt
+      
+      # Gotta install AWS CLI v2
+      - curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
+      - unzip awscliv2.zip 1> /dev/null
+      - ./aws/install
+      - aws --version
 
   pre_build:
     commands:
@@ -19,11 +24,11 @@ phases:
       
       # Get Private Key - from SecretsManager. It MUST be in a Secret named as "github-pipeline-private-key-1"
       - KEY_NAME=github-pipeline-private-key-1
-      - SECRETARN=$(aws secretsmanager describe-secret --secret-id $KEY_NAME --query "ARN" --output text)
+      - SECRET_ARN=$(aws secretsmanager describe-secret --secret-id $KEY_NAME --query "ARN" --output text)
       
       # Retrieve that value, decode from base64, and write it to ~/.ssh
       - mkdir -p ~/.ssh
-      - aws secretsmanager get-secret-value --secret-id "github-pipeline-private-key-1" --query "SecretString" --output text | jq -r '.privatekeybase64' | base64 -d > ~/.ssh/github_pipeline
+      - aws secretsmanager get-secret-value --secret-id "$SECRET_ARN" --query "SecretString" --output text | jq -r '.privatekeybase64' | base64 -d > ~/.ssh/github_pipeline
       
       # Update the ~/.ssh/config so we use it automatically when working with Github.
       - printf '%s\n%s\n' "Host github.com" "IdentityFile ~/.ssh/github_pipeline" >> ~/.ssh/config

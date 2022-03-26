@@ -41,7 +41,7 @@ If you run the optional 06-add-test-stage.sh, the Pipeline will be updated as fo
 
 If you run the full pipeline, it will look as follows:
 
-DIAGRAM COMING SOON!
+![Diagram - Full CI/CD pipeline including backend resources](/diagrams/aws-a-new-startup-pipeline-demo-cicd-full.png)
 
 # Installation
 

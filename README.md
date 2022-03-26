@@ -24,6 +24,9 @@ If you need multiple installs, use different regions!
 
 This repo is meant for demos to students - so we keep it as simple (as possible).
 
+Additional Requirements:
+* Must have AWS CLI v2 installed.  Please note that Cloud9 defaults to V1 - so uninstall and install v2!
+
 # Architecture
 
 This diagram shows the basic outline of how the application will run in the cloud.  Remember, you supply the VPC/Subnets.
@@ -41,7 +44,7 @@ If you run the optional 06-add-test-stage.sh, the Pipeline will be updated as fo
 
 If you run the full pipeline, it will look as follows:
 
-DIAGRAM COMING SOON!
+![Diagram - Full CI/CD pipeline including backend resources](/diagrams/aws-a-new-startup-pipeline-demo-cicd-full.png)
 
 # Installation
 

@@ -6,14 +6,14 @@
 #  a comma delimited list of 2 Public subnets, to use for the ALB and ASG. They need to be in the same VPC, of course!
 #
 # Example:
-# ./00-install.sh temp-bucket-3938abfg subnet-01394a2a0668b9de3,subnet-0696d8146ac458a3d
+# ./install.sh temp-bucket-3938abfg subnet-01394a2a0668b9de3,subnet-0696d8146ac458a3d
 #
 #
 
-# Check AWS CLI version - must be v2.
-AWS_CLI_VERSION=$(aws --version | grep -Po '(?<=aws-cli/)\d')
-if [[ $AWS_CLI_VERSION -lt 2 ]]; then
-    echo "You must install AWS CLI v2 to use this script."
+# Check for pre-requisites
+./95-check-prereqs.sh
+if [[ $? -ne 0 ]]; then
+    echo "Missing prerequisites... exiting..."
     exit 1
 fi
 

@@ -91,9 +91,6 @@ Resources:
           Fn::Base64: !Sub | 
             #!/bin/bash -xe
 
-            ## Reinstall curl
-            if yum list installed | grep '7.79.1-1'; then echo "Found old package"; yum reinstall curl -y; fi
-
             ## CodeDeploy Agent Install
             yum install -y wget
             yum install -y jq

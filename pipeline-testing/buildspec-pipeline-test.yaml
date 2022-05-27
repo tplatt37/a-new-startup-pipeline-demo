@@ -94,6 +94,10 @@ phases:
   post_build:
     commands:
     
+      # Wait 30 minutes. Giving EC2 instances a chance to report back into PVRE
+      - echo "Giving PVRE reporting a chance..."
+      - sleep 1800 
+    
       # After all that , we wipe things clean back to where we started.
       # (It is a CI/CD Pipeline, after all)
       - ./99-uninstall.sh --yes

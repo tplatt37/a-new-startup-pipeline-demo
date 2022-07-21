@@ -142,7 +142,6 @@ Resources:
   DefaultTargetGroup:
     Type: AWS::ElasticLoadBalancingV2::TargetGroup
     Properties:
-      Name: "a-new-startup"
       VpcId: !Ref VpcId
       Port: 3000
       Protocol: HTTP

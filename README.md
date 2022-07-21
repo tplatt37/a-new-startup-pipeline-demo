@@ -142,7 +142,7 @@ To uninstall manually:
 
 # Other things...
 
-The 01-repo.sh script will pull down the latest A-New-Startup app code and UI Testing code from Github. 
+The 01-repo.sh script will pull down the latest A-New-Startup app code and UI Testing code from Github. If that fails, it will use local ZIP archives as a fallback.
 
 97-pull-base-image.sh is called by another shell file to "cache" the Selenium/Headless Chrome image in a private ECR repo. 
 

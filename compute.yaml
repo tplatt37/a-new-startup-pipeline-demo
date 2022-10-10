@@ -69,6 +69,8 @@ Resources:
     Properties:
       LaunchTemplateName: a-new-startup
       LaunchTemplateData:
+        Monitoring:
+          Enabled: true
         IamInstanceProfile:
           Arn: !GetAtt
             - InstanceProfile

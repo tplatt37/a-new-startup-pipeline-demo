@@ -8,7 +8,10 @@ Resources:
     Type: 'AWS::CodePipeline::Pipeline'
     Properties:
       # Don't change this name.  Needs to have the same name as the other pipeline.
-      Name: a-new-startup 
+      Name: a-new-startup
+      Tags:
+        - Key: demo
+          Value: a-new-startup
       ArtifactStore:
           Type: S3
           Location: !ImportValue a-new-startup-ArtifactStoreBucket

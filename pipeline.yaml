@@ -15,6 +15,9 @@ Resources:
     Type: 'AWS::CodePipeline::Pipeline'
     Properties:
       Name: a-new-startup 
+      Tags:
+        - Key: demo
+          Value: a-new-startup
       ArtifactStore:
           Type: S3
           Location: !ImportValue a-new-startup-ArtifactStoreBucket

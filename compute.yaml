@@ -88,6 +88,8 @@ Resources:
             Value: a-new-startup
           - Key: Name
             Value: a-new-startup
+          - Key: demo
+            Value: a-new-startup
         UserData:
           # Run this UserData to install the CodeDeploy Agent.  
           Fn::Base64: !Sub | 
@@ -129,6 +131,11 @@ Resources:
         - !Ref SecurityGroup
       Subnets: !Ref Subnets
       Type: application
+      Tags:
+      - Key: Name
+        Value: a-new-startup-ec2
+      - Key: demo
+        Value: a-new-startup
       
   LoadBalancerListener:
     Type: AWS::ElasticLoadBalancingV2::Listener
@@ -156,7 +163,7 @@ Resources:
   
   InstanceProfileRole:
     Type: AWS::IAM::Role
-    Description: The Role to be used by the EC2 instance - includes application permissions and SSM
+    # The Role to be used by the EC2 instance - includes application permissions and SSM
     Properties:
       # NOTE: No RoleName specified, because IAM names are cross-region. We need it to be uniquely named.
       Description: Role for EC2 Instance Profile for A-New-Startup

@@ -19,6 +19,9 @@ Resources:
           Key: a-new-startup.zip
       RepositoryDescription: "The A-New-Startup application code - used in a CI/CD pipeline"
       RepositoryName: "a-new-startup"
+      Tags:
+        - Key: demo
+          Value: a-new-startup
 
   #
   # Everything below here is for the testing code
@@ -29,11 +32,17 @@ Resources:
     Type: AWS::ECR::Repository
     Properties:
       RepositoryName: "a-new-startup-test-base-image"
+      Tags:
+        - Key: demo
+          Value: a-new-startup
             
   TestingImageRepository:
     Type: AWS::ECR::Repository
     Properties:
       RepositoryName: "a-new-startup-testing-image"
+      Tags:
+        - Key: demo
+          Value: a-new-startup
 
   TestingCodeCommitRepo:
     Type: AWS::CodeCommit::Repository
@@ -46,3 +55,7 @@ Resources:
           Key: a-new-startup-ui-tests.zip
       RepositoryDescription: "The A-New-Startup testing code - used in a CI/CD pipeline"
       RepositoryName: "a-new-startup-testing-image"
+      Tags:
+        - Key: demo
+          Value: a-new-startup
+

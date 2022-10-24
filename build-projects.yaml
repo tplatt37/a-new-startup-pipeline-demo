@@ -25,6 +25,10 @@ Resources:
         ServerSideEncryptionConfiguration:
           - ServerSideEncryptionByDefault:
               SSEAlgorithm: 'AES256'
+      Tags:
+        - Key: demo
+          Value: a-new-startup
+
 
 #
 #  ___  __  ____  ____  ____  _  _  __  __    ____ 
@@ -56,12 +60,19 @@ Resources:
         Source:
             # Assume buildspec.yaml is in the source root directory
             Type: CODEPIPELINE
+        Tags:
+          - Key: demo
+            Value: a-new-startup
+
 
   # This project is used to build a Container Image of the testing code (Python/Selenium)
   TestImageBuildProject:
     Type: AWS::CodeBuild::Project
     Properties:
         Name: a-new-startup-test-image-build
+        Tags:
+        - Key: demo
+          Value: a-new-startup
         Artifacts:
             Type: CODEPIPELINE
         Cache:
@@ -99,6 +110,9 @@ Resources:
     Type: AWS::CodeBuild::Project
     Properties:
         Name: a-new-startup-run-tests
+        Tags:
+          - Key: demo
+            Value: a-new-startup
         Artifacts:
             Type: CODEPIPELINE
         Cache:
@@ -143,11 +157,18 @@ Resources:
     Properties:
       ApplicationName: "a-new-startup"
       ComputePlatform: Server
+      Tags:
+        - Key: demo
+          Value: a-new-startup
+
 
   DeploymentGroup:
     Type: AWS::CodeDeploy::DeploymentGroup
     Properties:
       ApplicationName: "a-new-startup"
+      Tags:
+        - Key: demo
+          Value: a-new-startup
       AutoScalingGroups:
       - "a-new-startup"
       DeploymentConfigName: "CodeDeployDefault.OneAtATime"

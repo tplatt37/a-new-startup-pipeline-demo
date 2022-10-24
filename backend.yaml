@@ -32,9 +32,17 @@ Resources:
         - 
           AttributeName: email
           KeyType: HASH 
+      Tags:
+        - Key: demo
+          Value: a-new-startup
+
       
   NewSignupQueue: 
     Type: AWS::SQS::Queue
+    Properties:
+      Tags:
+        - Key: demo
+          Value: a-new-startup
 
   NewSignupTopic:
     Type: AWS::SNS::Topic
@@ -43,6 +51,9 @@ Resources:
       - Endpoint:
           Fn::GetAtt: [NewSignupQueue, Arn]
         Protocol: sqs
+      Tags:
+        - Key: demo
+          Value: a-new-startup
 
   AllowSNS2SQSPolicy:
     Type: AWS::SQS::QueuePolicy
@@ -127,7 +138,7 @@ Resources:
 
   AppManagedPolicy:
       Type: AWS::IAM::ManagedPolicy
-      Description: Basic application level permissions needed for a-new-startup to run.
+      # Basic application level permissions needed for a-new-startup to run.
       Properties:
         # No PolicyName used, we want a unique name generated automatically
         PolicyDocument:

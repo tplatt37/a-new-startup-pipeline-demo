@@ -94,8 +94,9 @@ Resources:
           # Run this UserData to install the CodeDeploy Agent.  
           Fn::Base64: !Sub | 
             #!/bin/bash -xe
-
-            ## CodeDeploy Agent Install
+            # Install CloudWatch agent - use SSM document later to configure
+            yum install -y amazon-cloudwatch-agent
+            # CodeDeploy Agent Install
             yum install -y wget
             yum install -y jq
             yum install -y ruby
@@ -179,6 +180,8 @@ Resources:
       ManagedPolicyArns:
         # Use this Managed Policy so we can use SSM
         - "arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore"
+        # CloudWatch Agent policy 
+        - "arn:aws:iam::aws:policy/CloudWatchAgentServerPolicy"
         # Also will add the app permissions via the policy in an earlier stack.
         - !ImportValue "a-new-startup-AppManagedPolicy"
 

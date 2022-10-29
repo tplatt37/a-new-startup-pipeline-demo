@@ -156,6 +156,7 @@ Resources:
       Port: 3000
       Protocol: HTTP
       HealthyThresholdCount: 2
+      UnhealthyThresholdCount: 4
       # Set de-regisration really low - makes for faster demos and debugging
       # Set this higher in real-life
       TargetGroupAttributes:

@@ -33,6 +33,13 @@ ARTIFACT_BUCKET_STORE=$(aws cloudformation describe-stacks --stack-name a-new-st
 echo "Will empty bucket $ARTIFACT_BUCKET_STORE - to prevent stack delete from failing..."
 aws s3 rm s3://$ARTIFACT_BUCKET_STORE --recursive
 
+# Get the logging bucket from the Repo stack
+LOGGING_BUCKET=$(aws cloudformation describe-stacks --stack-name a-new-startup-repo --query "Stacks[0].Outputs[?OutputKey=='LoggingBucket'].OutputValue" --output text )
+
+# Empty the artifacts bucket (Otherwise stack delete will fail)
+echo "Will empty bucket $LOGGING_BUCKET - to prevent stack delete from failing..."
+aws s3 rm s3://$LOGGING_BUCKET --recursive
+
 # Manually --force delete the ecr repos.  They'll fail to delete otherwise.
 aws ecr delete-repository --repository-name "a-new-startup-test-base-image" --force
 aws ecr delete-repository --repository-name "a-new-startup-testing-image" --force

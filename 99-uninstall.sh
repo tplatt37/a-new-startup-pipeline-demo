@@ -28,6 +28,7 @@ echo "OK... here we go..."
 
 # Get the artifacts bucket from the Pipeline stack
 ARTIFACT_BUCKET_STORE=$(aws cloudformation describe-stacks --stack-name a-new-startup-build-projects --query "Stacks[0].Outputs[?OutputKey=='ArtifactStoreBucket'].OutputValue" --output text )
+echo "ARTIFACT_BUCKET_STORE=$ARTIFACT_BUCKET_STORE."
 
 # Empty the artifacts bucket (Otherwise stack delete will fail)
 echo "Will empty bucket $ARTIFACT_BUCKET_STORE - to prevent stack delete from failing..."
@@ -35,6 +36,7 @@ aws s3 rm s3://$ARTIFACT_BUCKET_STORE --recursive
 
 # Get the logging bucket from the Repo stack
 LOGGING_BUCKET=$(aws cloudformation describe-stacks --stack-name a-new-startup-repo --query "Stacks[0].Outputs[?OutputKey=='LoggingBucket'].OutputValue" --output text )
+echo "LOGGING_BUCKET=$LOGGING_BUCKET."
 
 # Empty the artifacts bucket (Otherwise stack delete will fail)
 echo "Will empty bucket $LOGGING_BUCKET - to prevent stack delete from failing..."

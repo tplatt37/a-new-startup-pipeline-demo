@@ -40,6 +40,7 @@ Resources:
           IpProtocol: tcp
           # NodeJS app is listening on port 3000
           # For debugging and demos, we want to demonstrate this without going via the ALB.
+          # Which is why we put these in Public subnets ideally - for an easier demo.
         - CidrIp: "0.0.0.0/0"
           FromPort: 3000
           ToPort: 3000
@@ -56,6 +57,12 @@ Resources:
       FromPort: 3000
       ToPort: 3000
       IpProtocol: tcp
+      
+  #
+  #
+  # There will be a default Outbound Allow rule automatically, we don't need to specify that.
+  #
+  #
   
   InstanceProfile:
     Type: AWS::IAM::InstanceProfile
@@ -77,6 +84,10 @@ Resources:
             - Arn
         ImageId: !Ref AmiId
         InstanceType: !Ref InstanceType
+        # IMDSv2 - https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/configuring-instance-metadata-service.html
+        MetadataOptions:
+          HttpEndpoint: enabled
+          HttpTokens: required
         SecurityGroupIds:
           - !Ref SecurityGroup
         # We *might* use these tags later to put these instance in the DeploymentGroup
@@ -100,7 +111,10 @@ Resources:
             yum install -y wget
             yum install -y jq
             yum install -y ruby
-            REGION=$(curl -s 169.254.169.254/latest/dynamic/instance-identity/document | jq -r ".region")
+            # Get IMDSv2 token
+            TOKEN=$(curl -X PUT "http://169.254.169.254/latest/api/token" -H "X-aws-ec2-metadata-token-ttl-seconds: 600")
+            # Figure out what region we are running in
+            REGION=$(curl -H "X-aws-ec2-metadata-token: $TOKEN" -s 169.254.169.254/latest/dynamic/instance-identity/document | jq -r ".region")
             cd /home/ec2-user
             URL="https://aws-codedeploy-$REGION.s3.$REGION.amazonaws.com/latest/install"
             wget $URL
@@ -121,6 +135,9 @@ Resources:
         - !Ref DefaultTargetGroup
       LaunchTemplate:
         LaunchTemplateName: "a-new-startup"
+        # Use the latest version available at the time this is being created. (So - version 1 always)
+        # There's no "latest" capability via CloudFormation
+        # If you update the stack later it would update the version used.
         Version: !GetAtt LaunchTemplate.LatestVersionNumber
         
   ApplicationLoadBalancer:

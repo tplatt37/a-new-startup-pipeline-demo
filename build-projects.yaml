@@ -242,7 +242,7 @@ Resources:
   BuildLogGroup: 
     Type: AWS::Logs::LogGroup
     Properties: 
-      LogGroupName: "/aws/codebuild/a-new-startup-build/"
+      LogGroupName: "/aws/codebuild/a-new-startup-build"
       RetentionInDays: 30
 
 #

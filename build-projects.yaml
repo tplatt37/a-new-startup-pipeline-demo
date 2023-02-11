@@ -238,6 +238,21 @@ Resources:
             - Arn
           Id: codepipeline-AppPipeline
 
+#
+# Metrics Filters
+#
+  MetricFilterSucceeeded:
+    Type: AWS::Logs::MetricFilter
+    Properties: 
+      FilterName: A-New-Startup-Builds-Succeeded
+      # Gotta be in double quotes 
+      FilterPattern: '"UPLOAD_ARTIFACTS State: SUCCEEDED"'
+      LogGroupName: "/aws/codebuild/a-new-startup-build"
+      MetricTransformations: 
+        - 
+          MetricValue: "1"
+          MetricNamespace: "A-New-Startup"
+          MetricName: "SuccessfulBuilds"
             
 #  __   __   _  _ 
 # (  ) / _\ ( \/ )

@@ -238,11 +238,20 @@ Resources:
             - Arn
           Id: codepipeline-AppPipeline
 
+  # This must be defined so that we can have the MetricFilters further down.
+  BuildLogGroup: 
+    Type: AWS::Logs::LogGroup
+    Properties: 
+      LogGroupName: "/aws/codebuild/a-new-startup-build/"
+      RetentionInDays: 30
+
 #
 # Metrics Filters
+# These scan Log Groups for certain text (and count) and can be used to define an Alarm
 #
   MetricFilterSucceeeded:
     Type: AWS::Logs::MetricFilter
+    DependsOn: BuildLogGroup
     Properties: 
       FilterName: A-New-Startup-Builds-Succeeded
       # Gotta be in double quotes 
@@ -253,6 +262,22 @@ Resources:
           MetricValue: "1"
           MetricNamespace: "A-New-Startup"
           MetricName: "SuccessfulBuilds"
+            
+  MetricFilterFailed:
+    Type: AWS::Logs::MetricFilter
+    DependsOn: BuildLogGroup
+    Properties: 
+      FilterName: A-New-Startup-Builds-Failed
+      # Gotta be in double quotes 
+      FilterPattern: '"UPLOAD_ARTIFACTS State: FAILED"'
+      LogGroupName: "/aws/codebuild/a-new-startup-build"
+      MetricTransformations: 
+        - 
+          MetricValue: "1"
+          MetricNamespace: "A-New-Startup"
+          MetricName: "FailedBuilds"
+            
+            
             
 #  __   __   _  _ 
 # (  ) / _\ ( \/ )

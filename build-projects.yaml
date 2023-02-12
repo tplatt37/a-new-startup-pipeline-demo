@@ -244,6 +244,7 @@ Resources:
 #
 
   # This must be defined so that we can have the MetricFilters further down.
+  # The BuildProject output will automatically use this LogGroup.
   BuildLogGroup: 
     Type: AWS::Logs::LogGroup
     Properties: 

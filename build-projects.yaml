@@ -238,6 +238,11 @@ Resources:
             - Arn
           Id: codepipeline-AppPipeline
 
+#
+# Log Group & Metrics Filters
+# These scan Log Groups for certain text (and count) and can be used to define an Alarm
+#
+
   # This must be defined so that we can have the MetricFilters further down.
   BuildLogGroup: 
     Type: AWS::Logs::LogGroup
@@ -245,10 +250,6 @@ Resources:
       LogGroupName: "/aws/codebuild/a-new-startup-build"
       RetentionInDays: 30
 
-#
-# Metrics Filters
-# These scan Log Groups for certain text (and count) and can be used to define an Alarm
-#
   MetricFilterSucceeeded:
     Type: AWS::Logs::MetricFilter
     DependsOn: BuildLogGroup
@@ -262,6 +263,7 @@ Resources:
           MetricValue: "1"
           MetricNamespace: "A-New-Startup"
           MetricName: "SuccessfulBuilds"
+          Unit: Count
             
   MetricFilterFailed:
     Type: AWS::Logs::MetricFilter
@@ -276,8 +278,7 @@ Resources:
           MetricValue: "1"
           MetricNamespace: "A-New-Startup"
           MetricName: "FailedBuilds"
-            
-            
+          Unit: Count
             
 #  __   __   _  _ 
 # (  ) / _\ ( \/ )

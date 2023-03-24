@@ -131,6 +131,8 @@ Resources:
       MinSize: 2
       DesiredCapacity: 2
       MaxSize: 4
+      # Will use both EC2 and ELB health checks
+      HealthCheckType: ELB
       TargetGroupARNs:
         - !Ref DefaultTargetGroup
       LaunchTemplate:

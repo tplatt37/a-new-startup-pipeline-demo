@@ -51,7 +51,7 @@ else
         cp a-new-startup-ui-tests.zip a-new-startup-ui-tests-fallback.zip
 fi
 
-# This is a zip of the testing code (python/selenim) used to test the UI.
+# This is a zip of the testing code (python/selenium) used to test the UI.
 aws s3 cp a-new-startup-ui-tests.zip s3://$BUCKET
 
 echo "Setting up CodeCommit repos and ECR repos..."

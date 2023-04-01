@@ -153,5 +153,21 @@ If you attempt to pull that particular container image from docker.io - you WILL
 This code should NOT be considered production ready.  
 While some best practices have been incorporated, the primary goal was to keep things SIMPLE so that students can absorb what they are being shown - without tons of extraneous error checking.
 
+# Appendix A - Using custom domain name and HTTPS with Certificate
+
+You can optionally use HTTPS/443 with a custom domain name.
+
+To do this, you MUST already have the Domain as a Hosted Zone in Route 53.
+
+For example, if "example.com" is the Domain in Route 53 with a Hosted Zone Id of "ABC1233FJJB":
+
+
+```
+DOMAIN_NAME="app.example.com"
+HOSTED_ZONE_ID="ABC1233FJJB"
+./install.sh $BUCKET_NAME $PUBLIC_SUBNET_IDS $DOMAIN_NAME $HOSTED_ZONE_ID
+```
+
+You will then be able to access the app via: https://app.example.com - and it will have a valid TLS certificate.
 
 

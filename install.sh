@@ -8,6 +8,11 @@
 # Example:
 # ./install.sh temp-bucket-3938abfg subnet-01394a2a0668b9de3,subnet-0696d8146ac458a3d
 #
+# OPTIONAL: You can also specify a Domain Name (for an already existing Hosted Zone in Route 53) as follows:
+# ./install.sh temp-bucket-3938abfg subnet-01394a2a0668b9de3,subnet-0696d8146ac458a3d app.example.com Z10426613LMJT7YG1WWWW
+#
+# In the above, example.com must be an existing Hosted Zone.
+#
 #
 
 # Check for pre-requisites
@@ -23,15 +28,45 @@ PREFIX=a-new-startup
 # Must pass in an s3 bucket (private) where the source code zip can be stored...
 if [ -z $1 ]; then
         echo "Need the S3 Bucket Name as a parameter. Exiting..."
+        echo "Use is: ./install.sh BUCKET_NAME COMMA_DELIMITED_LIST_PUBLIC_SUBNETS DOMAIN_NAME HOSTED_ZONE_ID"
+        echo "DOMAIN_NAME and HOSTED_ZONE_ID are optional"
         exit 0
 fi
 BUCKET=$1
 
 if [ -z $2 ]; then
         echo "Also need a comma delimited list of two Public subnet Ids. Exiting..."
+        echo "Use is: ./install.sh BUCKET_NAME COMMA_DELIMITED_LIST_PUBLIC_SUBNETS DOMAIN_NAME HOSTED_ZONE_ID"
+        echo "DOMAIN_NAME and HOSTED_ZONE_ID are optional"
         exit 0
 fi
 SUBNETS_COMMADELIMITED=$2
+
+#
+# DomainName and HostedZoneId are OPTIONAL
+# If you supply these, a custom domain name and HTTPS/443 will be used.
+# The Domain MUST already exist in Route 53 as a Hosted Zone.
+# For example, if you want to use app.example.com, example.com must be a Hosted Zone.
+#
+if [ ! -z $3 -a -z $4 ]; then
+        echo "If you specify a DomainName you must also specify the HostedZoneId"
+        exit 0
+fi
+
+if [ ! -z $3 ]; then
+        DOMAIN_NAME=$3
+else
+        DOMAIN_NAME=""
+fi
+
+if [ ! -z $4 ]; then
+        HOSTED_ZONE_ID=$4
+else
+        HOSTED_ZONE_ID=""
+fi
+
+echo "DOMAIN_NAME=$DOMAIN_NAME"
+echo "HOSTED_ZONE_ID=$HOSTED_ZONE_ID"
 
 REGION=${AWS_DEFAULT_REGION:-$(aws configure get default.region)}
 echo "Creating in $REGION..."
@@ -73,7 +108,11 @@ fi
 
 echo "Creating compute layer..."
 STACK_NAME=$PREFIX-compute
-./03-compute.sh $SUBNETS_COMMADELIMITED
+if [ ! -z $DOMAIN_NAME ]; then
+        ./03-compute.sh $SUBNETS_COMMADELIMITED $DOMAIN_NAME $HOSTED_ZONE_ID
+else
+        ./03-compute.sh $SUBNETS_COMMADELIMITED 
+fi
 aws cloudformation wait stack-exists --stack-name $STACK_NAME
 STACK_STATUS=$(aws cloudformation describe-stacks --stack-name $STACK_NAME --query "Stacks[].StackStatus" --output text)
 if [[ $STACK_STATUS != "CREATE_COMPLETE" ]] && [[ $STACK_STATUS != "UPDATE_COMPLETE" ]]; then
@@ -103,9 +142,14 @@ fi
 
 echo "Done..."
 
+PROTOCOL=$(aws cloudformation describe-stacks --stack-name a-new-startup-compute --query "Stacks[0].Outputs[?OutputKey=='Protocol'].OutputValue" --output text )
 DNSNAME=$(aws cloudformation describe-stacks --stack-name a-new-startup-compute --query "Stacks[0].Outputs[?OutputKey=='ALBDNS'].OutputValue" --output text )
 
 echo "Open this URL in your browser to see the app. NOTE: It won't work until the first run of the Pipeline finishes...give it a few minutes."
 echo " "
-echo "http://$DNSNAME"
+if [ $PROTOCOL == "https" ]; then
+        echo "$PROTOCOL://$DOMAIN_NAME"
+else
+        echo "$PROTOCOL://$DNSNAME"
+fi
 echo " "

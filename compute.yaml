@@ -1,5 +1,5 @@
 AWSTemplateFormatVersion: '2010-09-09'
-Description: A-New-Startup - Sets up the frontend layer of the app - An ALB in front for an ASG of Amazon Linux 2 EC2 instances.
+Description: A-New-Startup - Sets up the frontend layer of the app - An ALB in front of an ASG of Amazon Linux 2 EC2 instances.
 
 Parameters:
 
@@ -27,6 +27,39 @@ Parameters:
     Default: "a-new-startup"
     Description: "Used for the unique naming of resources and exports.  You probably should not change this."
 
+#
+# Override the defaults for these two parameters if you wish to use:
+# 1. A custom domain name (such as app.example.com)
+# 2. An HTTPS (443) listener with an ACM certificate
+# 
+# You must have the Domain already configured in Route 53 as a Hosted Zone.
+
+  DomainName:
+    Type: String
+    Default: "None"
+    Description: "Leave as None to use HTTP/80. If you have a Domain hosted in Route 53, you can specify that here to use HTTPS/443 - a certificate will be used with the ALB. You must also specify the Hosted Zone Id."
+
+  HostedZoneId:
+    Type: String
+    Default: "None"
+    Description: "Leave as None to use HTTP/80.  If you have a Domain hosted in Route 53, you can specify the Hosted Zone ID here. You must also specify DomainName desired."
+
+Conditions:
+  
+  UseDomainName: !Not
+    - !Equals
+      - !Ref DomainName
+      - 'None'
+  UseHostedZoneId: !Not
+    - !Equals
+      - !Ref HostedZoneId
+      - 'None'
+      
+  # Use a custom domain name if DomainName and HostedZoneId are provided.    
+  UseHTTPS: !And
+    - !Condition UseDomainName
+    - !Condition UseHostedZoneId
+    
 Resources:
 
   SecurityGroup:
@@ -35,8 +68,14 @@ Resources:
       GroupDescription: "Security group for a-new-startup application EC2 instances"
       SecurityGroupIngress:
         - CidrIp: "0.0.0.0/0"
-          FromPort: 80
-          ToPort: 80
+          FromPort: !If
+            - UseHTTPS
+            - 443
+            - 80
+          ToPort: !If
+            - UseHTTPS
+            - 443
+            - 80
           IpProtocol: tcp
           # NodeJS app is listening on port 3000
           # For debugging and demos, we want to demonstrate this without going via the ALB.
@@ -163,17 +202,60 @@ Resources:
         Value: a-new-startup-ec2
       - Key: demo
         Value: a-new-startup
-      
+  
+  # This is only created if we are using HTTPS
+  # This is an ACM Certificate for the ALB's 443 Listener
+  Certificate: 
+    Type: "AWS::CertificateManager::Certificate"
+    Condition: UseHTTPS
+    Properties: 
+      DomainName: !Ref DomainName
+      ValidationMethod: DNS
+      DomainValidationOptions:
+            - DomainName: !Ref DomainName
+              HostedZoneId: !Ref HostedZoneId
+  
+  # This is only created if we are using HTTPS
+  # This is the DNS CNAME record that will point the domain name to the ALB
+  DNS:
+    Type: AWS::Route53::RecordSetGroup
+    Condition: UseHTTPS
+    Properties:
+      HostedZoneId: !Ref HostedZoneId
+      RecordSets:
+      # NOTE: Needs the "." on the end.
+      - Name: !Sub '${DomainName}.'
+        Type: CNAME
+        TTL: '60'
+        ResourceRecords:
+        - !GetAtt ApplicationLoadBalancer.DNSName
+  #    
+  # Setup the listener - either on HTTP/80 
+  # OR
+  # HTTPS/443 with a Certificate 
+  #
   LoadBalancerListener:
     Type: AWS::ElasticLoadBalancingV2::Listener
     Properties:
       LoadBalancerArn: !Ref ApplicationLoadBalancer
-      # Not best practice.  Trying to keep things simple.
-      Port: 80
-      Protocol: HTTP
+      Port: !If
+        - UseHTTPS
+        - 443
+        - 80
+      Protocol: !If
+        - UseHTTPS
+        - HTTPS
+        - HTTP
       DefaultActions:
         - Type: forward
           TargetGroupArn: !Ref DefaultTargetGroup
+      Certificates: 
+        !If
+        - UseHTTPS  
+        - 
+          # Needs to be nested like this. It's a LIST
+          - CertificateArn: !Ref Certificate
+        - !Ref AWS::NoValue
 
   DefaultTargetGroup:
     Type: AWS::ElasticLoadBalancingV2::TargetGroup
@@ -214,6 +296,16 @@ Resources:
 
                     
 Outputs:
+
+  Protocol:
+    Description: Indicates whether or not HTTPS was used
+    Value: !If
+      - UseHTTPS
+      - 'https'
+      - 'http'
+    Export:
+      Name: !Join ['-', [!Ref Prefix, 'Protocol']]
+      
   ALBDNS:
     Description: DNS Of the ALB - pull this up in the browser to see the application.
     Value: !GetAtt ApplicationLoadBalancer.DNSName

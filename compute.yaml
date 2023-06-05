@@ -172,6 +172,8 @@ Resources:
       MaxSize: 4
       # Will use both EC2 and ELB health checks
       HealthCheckType: ELB
+      # When an instance first becomes "InService" give it a bit to get going...
+      HealthCheckGracePeriod: 120
       TargetGroupARNs:
         - !Ref DefaultTargetGroup
       LaunchTemplate:

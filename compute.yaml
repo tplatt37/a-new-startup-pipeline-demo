@@ -266,7 +266,9 @@ Resources:
       Port: 3000
       Protocol: HTTP
       HealthyThresholdCount: 2
-      UnhealthyThresholdCount: 4
+      # Set this high because otherwise the initial deployment will get bogged down due to
+      # servers constantly being terminated because they are unhealthy.
+      UnhealthyThresholdCount: 15
       # Set de-regisration really low - makes for faster demos and debugging
       # Set this higher in real-life
       TargetGroupAttributes:

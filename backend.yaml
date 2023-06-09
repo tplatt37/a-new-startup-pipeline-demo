@@ -216,6 +216,16 @@ Resources:
                       - ":"
                       - ":"
                       - ":a-new-startup*/*"
+                # In case you are using the default codepipeline artifact bucket...
+                # (sometimes in manual demos I do this)
+                - Fn::Join:
+                    - ""
+                    - - "arn:"
+                      - Ref: AWS::Partition
+                      - ":s3"
+                      - ":"
+                      - ":"
+                      - ":codepipline-*/*"
 
 Outputs:
 

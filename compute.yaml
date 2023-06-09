@@ -173,7 +173,7 @@ Resources:
       # Will use both EC2 and ELB health checks
       HealthCheckType: ELB
       # When an instance first becomes "InService" give it a bit to get going...
-      HealthCheckGracePeriod: 120
+      HealthCheckGracePeriod: 180
       TargetGroupARNs:
         - !Ref DefaultTargetGroup
       LaunchTemplate:
@@ -265,10 +265,14 @@ Resources:
       VpcId: !Ref VpcId
       Port: 3000
       Protocol: HTTP
+      # Check health every 30 seconds
+      HealthCheckIntervalSeconds: 30
       HealthyThresholdCount: 2
       # Set this high because otherwise the initial deployment will get bogged down due to
       # servers constantly being terminated because they are unhealthy.
-      UnhealthyThresholdCount: 15
+      # 10 is the max.
+      # (The Load Balancer will be hitting Port 3000 expecting something to be there, but the first build must complete before the install will happen)
+      UnhealthyThresholdCount: 10
       # Set de-regisration really low - makes for faster demos and debugging
       # Set this higher in real-life
       TargetGroupAttributes:

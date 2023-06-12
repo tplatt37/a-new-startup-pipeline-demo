@@ -523,7 +523,6 @@ Resources:
                     - 'iam:DetachRolePolicy'
                     - 'iam:PutRolePolicy'
                     - 'iam:GetRole'
-                    - 'iam:CreatePolicy'
                   Resource: !Join 
                     - ''
                     - - '*'
@@ -556,7 +555,10 @@ Resources:
                     - 'sns:*'
                     - 'iam:GetPolicy'
                     - 'iam:ListPolicyVersions'
+                    - 'iam:CreatePolicy'
+                    - 'iam:CreatePolicyVersion'
                     - 'iam:DeletePolicy'
+                    - 'iam:DeletePolicyVersion'
                     - 'ssm:PutParameter'
                     - 'ssm:DeleteParameter'
                     - 'ssm:AddTagsToResource'

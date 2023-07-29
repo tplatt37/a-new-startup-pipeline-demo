@@ -167,9 +167,9 @@ Resources:
     Properties:
       AutoScalingGroupName: "a-new-startup"
       VPCZoneIdentifier: !Ref Subnets
-      MinSize: 2
-      DesiredCapacity: 2
-      MaxSize: 4
+      MinSize: 4
+      DesiredCapacity: 4
+      MaxSize: 8
       # Will use both EC2 and ELB health checks
       HealthCheckType: ELB
       # When an instance first becomes "InService" give it a bit to get going...

@@ -129,7 +129,7 @@ If you run this command, it will create the full pipeline.
 
 When there are patches outstanding for the AL2023 AMI, SSM will force a reboot of the machine very shortly after launching.  This can be confirmed using the "last" command. Unfortunately, this can interrupt the CodeDeploy Agent while it is still running.    This also has the unfortunate side effect that Target Group Health Checks will keep failing, over and over and over, spinning up lots of short-lived machines.
 
-You can try turning OFF the ASG ALB health checks - configure it to use EC2 status only. Does this help?  This probably leaves unhealthy machines but then you can FORCE a deployment through to fix them.
+You can try turning OFF the ASG ALB health checks - configure it to use EC2 status only. Does this help?  This probably leaves unhealthy machines but then you can FORCE a deployment through to fix them. (In CodeDeploy find the last failed deployment and simply using "Retry Deployment")
 
 
 # Uninstall

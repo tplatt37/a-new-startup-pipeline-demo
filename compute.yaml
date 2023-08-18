@@ -314,11 +314,11 @@ Outputs:
     Export:
       Name: !Join ['-', [!Ref Prefix, 'Protocol']]
 
-  Domain:
+  DomainName:
     Description: If using a custom domain, this is the Parameter that was input. We make it a stack output so it's convenient for testing later.
-    Value: !Ref Domain
+    Value: !Ref DomainName
     Export:
-      Name: !Join ['-', [!Ref Prefix, 'Domain']] 
+      Name: !Join ['-', [!Ref Prefix, 'DomainName']] 
 
   ALBDNS:
     Description: DNS Of the ALB - pull this up in the browser to see the application.

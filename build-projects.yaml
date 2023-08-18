@@ -46,8 +46,8 @@ Resources:
             Type: CODEPIPELINE
         Environment:
             ComputeType: BUILD_GENERAL1_SMALL
-            # Ubuntu with NodeJS 16
-            Image: aws/codebuild/standard:6.0
+            # Ubuntu with NodeJS 18
+            Image: aws/codebuild/standard:7.0
             PrivilegedMode: false
             Type: LINUX_CONTAINER
             EnvironmentVariables:

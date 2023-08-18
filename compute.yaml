@@ -313,7 +313,13 @@ Outputs:
       - 'http'
     Export:
       Name: !Join ['-', [!Ref Prefix, 'Protocol']]
-      
+
+  Domain:
+    Description: If using a custom domain, this is the Parameter that was input. We make it a stack output so it's convenient for testing later.
+    Value: !Ref Domain
+    Export:
+      Name: !Join ['-', [!Ref Prefix, 'Domain']] 
+
   ALBDNS:
     Description: DNS Of the ALB - pull this up in the browser to see the application.
     Value: !GetAtt ApplicationLoadBalancer.DNSName

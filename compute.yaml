@@ -144,10 +144,8 @@ Resources:
           # Run this UserData to install the CodeDeploy Agent.  
           Fn::Base64: !Sub | 
             #!/bin/bash -xe
-            # CodeDeploy Agent Install
-            dnf install -y wget
-            dnf install -y jq
-            dnf install -y ruby
+            # CodeDeploy Agent Install pre-reqs
+            dnf install -y wget jq ruby
             # Get IMDSv2 token
             TOKEN=$(curl -X PUT "http://169.254.169.254/latest/api/token" -H "X-aws-ec2-metadata-token-ttl-seconds: 600")
             # Figure out what region we are running in

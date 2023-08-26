@@ -13,8 +13,8 @@ Parameters:
 
   AmiId:
     Type: 'AWS::SSM::Parameter::Value<AWS::EC2::Image::Id>'
-    Default: '/aws/service/ami-amazon-linux-latest/amzn2-ami-hvm-x86_64-gp2'
-    Description: "Amazon Linux 2 AMI ID to use - defaults to latest for this region."
+    Default: '/aws/service/ami-amazon-linux-latest/al2023-ami-kernel-default-x86_64'
+    Description: "Amazon Linux 2023 AMI ID to use - defaults to latest for this region."
     
   InstanceType:
     Type: String
@@ -145,11 +145,11 @@ Resources:
           Fn::Base64: !Sub | 
             #!/bin/bash -xe
             # Install CloudWatch agent - use SSM document later to configure
-            yum install -y amazon-cloudwatch-agent
+            dnf install -y amazon-cloudwatch-agent
             # CodeDeploy Agent Install
-            yum install -y wget
-            yum install -y jq
-            yum install -y ruby
+            dnf install -y wget
+            dnf install -y jq
+            dnf install -y ruby
             # Get IMDSv2 token
             TOKEN=$(curl -X PUT "http://169.254.169.254/latest/api/token" -H "X-aws-ec2-metadata-token-ttl-seconds: 600")
             # Figure out what region we are running in
@@ -171,6 +171,10 @@ Resources:
       DesiredCapacity: 4
       MaxSize: 8
       # Will use both EC2 and ELB health checks
+      # Please note that this can cause issues if your instances are being patched as soon as they boot.
+      # The reboot that SSM Patching does will interrupt the CodeDeploy process
+      # and the instances will constantly churn as they will be terminated and replaced
+      # ... only for the same thing to happen over and over.
       HealthCheckType: ELB
       # When an instance first becomes "InService" give it a bit to get going...
       HealthCheckGracePeriod: 180

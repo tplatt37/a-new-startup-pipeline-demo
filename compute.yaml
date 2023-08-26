@@ -187,7 +187,17 @@ Resources:
         # There's no "latest" capability via CloudFormation
         # If you update the stack later it would update the version used.
         Version: !GetAtt LaunchTemplate.LatestVersionNumber
-        
+  
+  ScalingPolicy:
+    Type: AWS::AutoScaling::ScalingPolicy
+    Properties:
+      AutoScalingGroupName: !Ref AutoScalingGroup
+      PolicyType: TargetTrackingScaling
+      TargetTrackingConfiguration:
+        PredefinedMetricSpecification:
+          PredefinedMetricType: ASGAverageCPUUtilization
+        TargetValue: 50
+
   ApplicationLoadBalancer:
     Type: AWS::ElasticLoadBalancingV2::LoadBalancer
     Properties: 
@@ -209,7 +219,7 @@ Resources:
         Value: a-new-startup-ec2
       - Key: demo
         Value: a-new-startup
-  
+           
   # This is only created if we are using HTTPS
   # This is an ACM Certificate for the ALB's 443 Listener
   Certificate: 

@@ -144,8 +144,6 @@ Resources:
           # Run this UserData to install the CodeDeploy Agent.  
           Fn::Base64: !Sub | 
             #!/bin/bash -xe
-            # Install CloudWatch agent - use SSM document later to configure
-            dnf install -y amazon-cloudwatch-agent
             # CodeDeploy Agent Install
             dnf install -y wget
             dnf install -y jq
@@ -161,6 +159,9 @@ Resources:
             ./install auto
             service codedeploy-agent start
             service codedeploy-agent status
+            # Install CloudWatch agent - use SSM document later to configure
+            # This is LAST because it fails intermittently on AL2023 (2023-08-26)
+            dnf install -y amazon-cloudwatch-agent
 
   AutoScalingGroup:
     Type: AWS::AutoScaling::AutoScalingGroup

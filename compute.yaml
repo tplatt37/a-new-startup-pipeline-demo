@@ -146,6 +146,8 @@ Resources:
             #!/bin/bash -xe
             # CodeDeploy Agent Install pre-reqs
             dnf install -y wget jq ruby
+            # If any package failed, try again, after a short sleep (To address intermittent package failures)
+            if [[ $? != 0 ]]; then sleep 10 && dnf install -y wget jq ruby; fi 
             # Get IMDSv2 token
             TOKEN=$(curl -X PUT "http://169.254.169.254/latest/api/token" -H "X-aws-ec2-metadata-token-ttl-seconds: 600")
             # Figure out what region we are running in

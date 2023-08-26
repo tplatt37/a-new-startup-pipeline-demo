@@ -125,6 +125,17 @@ If you run this command, it will create the full pipeline.
 ./07-pipeline-full.sh
 ```
 
+# Auto Scaling Group Demo
+
+The ASG has a Dynamic Scaling Policy - Target Tracking of 50% CPU.
+
+The instances have "stress" pre-installed - you can use SSM Command Document to run:
+```
+stress --cpu 1 --timeout 600s
+```
+
+To stress 1 CPU for 10 minutes.  That will trigger the autoscaling rule.   (If you change machine types, use a higher value for --cpu)
+
 # Troubleshooting 
 
 UPDATE: Currently the Amazon Linux 2023 AMI is used instead, because of the deterministic updates this problem should go away (2023-08-26)

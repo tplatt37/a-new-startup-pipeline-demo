@@ -178,7 +178,7 @@ Resources:
       # and then retrieves the corresponding parameters (dev table, dev sns , etc.)
       DeploymentGroupName: "dev"
       DeploymentStyle: 
-        DeploymentOption: WITHOUT_TRAFFIC_CONTROL
+        DeploymentOption: WITH_TRAFFIC_CONTROL
         DeploymentType: IN_PLACE
       Ec2TagFilters:
         - Key: deploymentgroup

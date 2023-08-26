@@ -178,7 +178,10 @@ Resources:
       # and then retrieves the corresponding parameters (dev table, dev sns , etc.)
       DeploymentGroupName: "dev"
       DeploymentStyle: 
-        DeploymentOption: WITH_TRAFFIC_CONTROL
+        # There's also "WITH_TRAFFIC_CONTROL": https://docs.aws.amazon.com/codedeploy/latest/userguide/integrations-aws-elastic-load-balancing.html
+        # You have to use some scripts to de-register and re-register with the ELB during the lifecycle events.
+        # It's a bit too much complication for a simple demo (but would be recommended for real world)
+        DeploymentOption: WITHOUT_TRAFFIC_CONTROL
         DeploymentType: IN_PLACE
       Ec2TagFilters:
         - Key: deploymentgroup

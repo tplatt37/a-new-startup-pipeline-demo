@@ -144,7 +144,9 @@ Resources:
           # Run this UserData to install the CodeDeploy Agent.  
           Fn::Base64: !Sub | 
             #!/bin/bash -xe
+            #
             # CodeDeploy Agent Install pre-reqs
+            #
             dnf install -y wget jq ruby
             # If any package failed, try again, after a short sleep (To address intermittent package failures)
             if [[ $? != 0 ]]; then sleep 10 && dnf install -y wget jq ruby; fi 
@@ -152,6 +154,10 @@ Resources:
             TOKEN=$(curl -X PUT "http://169.254.169.254/latest/api/token" -H "X-aws-ec2-metadata-token-ttl-seconds: 600")
             # Figure out what region we are running in
             REGION=$(curl -H "X-aws-ec2-metadata-token: $TOKEN" -s 169.254.169.254/latest/dynamic/instance-identity/document | jq -r ".region")
+            #
+            # Install CodeDeploy Agent
+            # We'll use this to install our app later when pipeline runs.
+            #
             cd /home/ec2-user
             URL="https://aws-codedeploy-$REGION.s3.$REGION.amazonaws.com/latest/install"
             wget $URL
@@ -159,18 +165,22 @@ Resources:
             ./install auto
             service codedeploy-agent start
             service codedeploy-agent status
+            #
             # Install NodeJS 18
-            curl -fsSL https://rpm.nodesource.com/setup_18.x | sudo bash -
-            yum update
-            yum install -y nodejs
+            #
+            dnf install https://rpm.nodesource.com/pub_18.x/nodistro/repo/nodesource-release-nodistro-1.noarch.rpm -y
+            dnf install nodejs -y 
             npm -v
             node -v
+            #
             # Install XRay
+            #
             curl https://s3.us-east-2.amazonaws.com/aws-xray-assets.us-east-2/xray-daemon/aws-xray-daemon-3.x.rpm -o /home/ec2-user/xray.rpm
             yum install -y /home/ec2-user/xray.rpm
             systemctl enable xray
             systemctl start xray
             systemctl status xray
+            #
             # Install CloudWatch agent - use SSM document later to configure
             # This is LAST because it fails intermittently on AL2023 (2023-08-26)
             dnf install -y amazon-cloudwatch-agent

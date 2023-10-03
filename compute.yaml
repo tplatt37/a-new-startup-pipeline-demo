@@ -147,9 +147,16 @@ Resources:
             #
             # CodeDeploy Agent Install pre-reqs
             #
-            dnf install -y wget jq ruby
-            # If any package failed, try again, after a short sleep (To address intermittent package failures on al2023)
-            if [[ $? != 0 ]]; then sleep 10 && dnf install -y wget jq ruby; fi 
+            dnf install -y wget jq
+            dnf install -y ruby
+            # October 2023:
+            # ruby install tends to fail frequently (AL2023) with:
+            # [Errno 2] No such file or directory: '/var/cache/dnf/amazonlinux-1a4296c84a720383/packages/ruby3.2-rubygem-psych-5.0.1-180.amzn2023.0.2.x86_64.rpm'
+            # If it failed, try again, after a short sleep
+            if [[ $? != 0 ]]; then echo "retry 1..." && sleep 10 && dnf install -y ruby; fi 
+            if [[ $? != 0 ]]; then echo "retry 2..." && sleep 10 && dnf install -y ruby; fi 
+            if [[ $? != 0 ]]; then echo "retry 3..." && sleep 10 && dnf install -y ruby; fi 
+            #
             # Get IMDSv2 token
             TOKEN=$(curl -X PUT "http://169.254.169.254/latest/api/token" -H "X-aws-ec2-metadata-token-ttl-seconds: 600")
             # Figure out what region we are running in

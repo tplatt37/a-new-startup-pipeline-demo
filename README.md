@@ -14,7 +14,7 @@ This codebase is meant for the DevOps Engineering on AWS class.  As such, it fol
 
 # Requirements
 
-You need to supply a VPC with 2 Public Subnets (EC2 instances must default to be assigned a Public IP).  
+You need to supply a VPC with 2 Public Subnets (EC2 instances must default to be assigned a Public IP!).  
 
 You need to supply a private S3 bucket, which will be used to temporarily house the A-New-Startup source code (so it can be copied into the CodeCommit repo.)
 

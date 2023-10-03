@@ -207,7 +207,9 @@ Resources:
       # ... only for the same thing to happen over and over.
       HealthCheckType: ELB
       # When an instance first becomes "InService" give it a bit to get going...
-      HealthCheckGracePeriod: 180
+      # Consider we are doing "OneAtATime" Deployment, if you have a lot of instances
+      # it takes MINUTES to get through them all...
+      HealthCheckGracePeriod: 600
       TargetGroupARNs:
         - !Ref DefaultTargetGroup
       LaunchTemplate:

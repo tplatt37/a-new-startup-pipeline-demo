@@ -159,6 +159,18 @@ Resources:
             ./install auto
             service codedeploy-agent start
             service codedeploy-agent status
+            # Install NodeJS 18
+            curl -fsSL https://rpm.nodesource.com/setup_18.x | sudo bash -
+            yum update
+            yum install -y nodejs
+            npm -v
+            node -v
+            # Install XRay
+            curl https://s3.us-east-2.amazonaws.com/aws-xray-assets.us-east-2/xray-daemon/aws-xray-daemon-3.x.rpm -o /home/ec2-user/xray.rpm
+            yum install -y /home/ec2-user/xray.rpm
+            systemctl enable xray
+            systemctl start xray
+            systemctl status xray
             # Install CloudWatch agent - use SSM document later to configure
             # This is LAST because it fails intermittently on AL2023 (2023-08-26)
             dnf install -y amazon-cloudwatch-agent

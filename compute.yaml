@@ -145,17 +145,17 @@ Resources:
           Fn::Base64: !Sub | 
             #!/bin/bash -xe
             #
-            # CodeDeploy Agent Install pre-reqs
+            # CodeDeploy Agent and other pre-reqs install
             #
             dnf install -y wget jq
-            dnf install -y ruby
+            #
             # October 2023:
             # ruby install tends to fail frequently (AL2023) with:
             # [Errno 2] No such file or directory: '/var/cache/dnf/amazonlinux-1a4296c84a720383/packages/ruby3.2-rubygem-psych-5.0.1-180.amzn2023.0.2.x86_64.rpm'
             # If it failed, try again, after a short sleep
-            if [[ $? != 0 ]]; then echo "retry 1..." && sleep 10 && dnf install -y ruby; fi 
-            if [[ $? != 0 ]]; then echo "retry 2..." && sleep 10 && dnf install -y ruby; fi 
-            if [[ $? != 0 ]]; then echo "retry 3..." && sleep 10 && dnf install -y ruby; fi 
+            # We MUST have ruby. Or codedeploy isn't gonna work
+            # This will keep looping until it works
+            while ! dnf install -y ruby; do dnf clean packages; sleep 15; done
             #
             # Get IMDSv2 token
             TOKEN=$(curl -X PUT "http://169.254.169.254/latest/api/token" -H "X-aws-ec2-metadata-token-ttl-seconds: 600")

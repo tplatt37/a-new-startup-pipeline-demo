@@ -174,6 +174,8 @@ The EC2 User Data (see compute.yaml) must execute successfully on launch.
 
     On linux, you can run the "last" command to see reboot history. Sometimes patches require a reboot.
 
+    Lastly, consider that it's better (for a demo and in the real world) for the setup steps to happen as quickly as possible. Therefore we default to a t3.large with unlimited bursting. Using a t2.micro will give you zero burst credits to start - and it's going to be very busy with all these installs. Therefore I don't recommend using a machine that small.
+
     ### Why don't we ? 
 
     Why don't we use cfn-init/cfn-signal to fail the stack if a machine doesn't get healthy? THat only helps on initial launch. These User Data problems can also occur during scale out.
@@ -181,6 +183,8 @@ The EC2 User Data (see compute.yaml) must execute successfully on launch.
     Why don't we just build a custom AMI with all the pre-reqs on it? That's a lot of work to stay on top of patching... probably too much ongoing work for a trainer (But that would eliminate these issues)  
 
 ## CodeDeploy agent not running
+
+    Did the User Data run to completion? Starting codedeploy agent is the last thing it does.
 
     Run :
     ```
@@ -201,6 +205,10 @@ Look for errors.
 Which stage/hook are the failures occurring in?
 
 Are all the pre-requisites available? (run "node -v")
+
+If you see 203/Exec errors from systemd during Application_Start - that will occur if the machine is being terminated. For example is it rebooting for a patch? ASG scale-in? ELB Health check failure? 
+
+
 
 
 # Uninstall

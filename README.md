@@ -154,9 +154,9 @@ This means, while you are troubleshooting machines may be terminated by either t
 
 Consider also that to have the application up and running and listening on Port 3000 (and therefore able to pass a health check):
 
-1. The EC2 User Data must run successfully to ensure prerequisites are in place
+1. The EC2 User Data must run successfully on launch to ensure prerequisites are in place
 2. The CodeDeploy agent must be running on the machine. Machine must be able to talk to CodeDeploy (typically via Internet)
-3. A Deployment must have executed successfully.
+3. A CodeDeploy Deployment must have executed successfully.
 
 ## Troubleshooting User Data failures
 
@@ -172,15 +172,15 @@ The EC2 User Data (see compute.yaml) must execute successfully on launch.
 
     Look for indications that the machine may have been terminated by something (ELB Healthcheck, ASG scale-in, Rebooting for patches) before it was done. 
 
-    On linux, you can run the "last" command to see reboot history. Sometimes patches require a reboot.
+    On linux, you can run the "last" command to see reboot history. Sometimes patches require a reboot.  A reboot can and will stop User Data or CodeDeploy from completing successfully.  This project uses Amazon Linux 2023 specifically because the patching is deterministic and results in less frequent patching reboots (as compared to AL2).
 
     Lastly, consider that it's better (for a demo and in the real world) for the setup steps to happen as quickly as possible. Therefore we default to a t3.large with unlimited bursting. Using a t2.micro will give you zero burst credits to start - and it's going to be very busy with all these installs. Therefore I don't recommend using a machine that small.
 
     ### Why don't we ? 
 
-    Why don't we use cfn-init/cfn-signal to fail the stack if a machine doesn't get healthy? THat only helps on initial launch. These User Data problems can also occur during scale out.
+    Why don't we use cfn-init/cfn-signal to fail the stack if a machine doesn't complete user-data successfully? cfn-init/cfn-signal is not a bad idea.  But tHat only helps on initial launch. These User Data problems can also occur during ASG scale out. Secondly, I am trying to limit complexity because this is a TRAINER DEMO and not a real-world app.  (a cfn-signal FAILURE signal will cause stack rollback by default and therefore erase all the evidence.)
 
-    Why don't we just build a custom AMI with all the pre-reqs on it? That's a lot of work to stay on top of patching... probably too much ongoing work for a trainer (But that would eliminate these issues)  
+    Why don't we just build a custom AMI with all the pre-reqs on it? That's a lot of work to stay on top of patching... probably too much ongoing work for a trainer (But that would largely eliminate these issues)  
 
 ## CodeDeploy agent not running
 
@@ -207,8 +207,6 @@ Which stage/hook are the failures occurring in?
 Are all the pre-requisites available? (run "node -v")
 
 If you see 203/Exec errors from systemd during Application_Start - that will occur if the machine is being terminated. For example is it rebooting for a patch? ASG scale-in? ELB Health check failure? 
-
-
 
 
 # Uninstall

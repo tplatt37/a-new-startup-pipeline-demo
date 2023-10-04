@@ -147,7 +147,8 @@ Resources:
             #
             # CodeDeploy Agent and other pre-reqs install
             #
-            dnf install -y wget jq
+            while ! dnf install -y wget; do dnf clean packages; sleep 15; done
+            while ! dnf install -y jq; do dnf clean packages; sleep 15; done
             #
             # October 2023:
             # ruby install tends to fail frequently (AL2023) with:
@@ -165,21 +166,21 @@ Resources:
             # Install NodeJS 18
             #
             dnf install https://rpm.nodesource.com/pub_18.x/nodistro/repo/nodesource-release-nodistro-1.noarch.rpm -y
-            dnf install nodejs -y 
+            while ! dnf install -y nodejs; do dnf clean packages; sleep 15; done
             npm -v
             node -v
             #
             # Install XRay
             #
             curl https://s3.us-east-2.amazonaws.com/aws-xray-assets.us-east-2/xray-daemon/aws-xray-daemon-3.x.rpm -o /home/ec2-user/xray.rpm
-            yum install -y /home/ec2-user/xray.rpm
+            dnf install -y /home/ec2-user/xray.rpm
             systemctl enable xray
             systemctl start xray
             systemctl status xray
             #
             # Install CloudWatch agent - use SSM document later to configure
             # This fails intermittently on AL2023 (2023-08-26)
-            dnf install -y amazon-cloudwatch-agent
+            while ! dnf install -y amazon-cloudwatch-agent; do dnf clean packages; sleep 15; done
             #
             # Install CodeDeploy Agent
             # We'll use this to install our app later when pipeline runs.

@@ -18,9 +18,11 @@ Parameters:
     
   InstanceType:
     Type: String
-    Default: "t2.micro"
-    AllowedValues: ["t2.micro", "t3.micro", "t2.small", "t3.small"]
-    Description: "Enter instance type to use. Default is t2.micro"
+    # t3 have unlimited bursting. This demo works better if it doesn't take forever for all the setup to happen...
+    # so be careful if you use a smaller size.
+    Default: "t3.large"
+    AllowedValues: ["t2.micro", "t3.micro", "t2.small", "t3.small", "t3.medium", "t3.large", "t3.xlarge"]
+    Description: "Enter instance type to use. Default is t3.large"
 
   Prefix:
     Type: String

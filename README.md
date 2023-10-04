@@ -12,6 +12,8 @@ A Pipeline uses CodePipeline/CodeBuild/CodeDeploy to deploy the A-New-Startup ap
 
 This codebase is meant for the DevOps Engineering on AWS class.  As such, it follows a simple "script" and keeps things simple.
 
+This solution is PVRE Friendly, as the EC2 instances will use Amazon Linux 2023 and will have the SSM agent installed and with proper permissions via Instance Profile/IAM Role.
+
 # Requirements
 
 You need to supply a VPC with 2 Public Subnets (EC2 instances must default to be assigned a Public IP!).  
@@ -138,13 +140,68 @@ To stress 1 CPU for 10 minutes.  That will trigger the autoscaling rule.   (If y
 
 # Troubleshooting 
 
-UPDATE: Currently the Amazon Linux 2023 AMI is used instead, because of the deterministic updates this problem should happen less frequently (2023-08-26)
+## EC2 Instances Failing Health Checks 
+The most common/likely issue you will encounter is the EC2 instances not becoming healthy - and therefore being terminated by the ELB Health Checks.
 
-When there are patches outstanding for the Amazon Linux 2 AMI, SSM will force a reboot of the machine very shortly after launching.  This can be confirmed using the "last" command. Unfortunately, this can interrupt the CodeDeploy Agent while it is still running.    This also has the unfortunate side effect that Target Group Health Checks will keep failing, over and over and over, spinning up lots of short-lived machines.
+Consider all of the following:
 
-You can try turning OFF the ASG ALB health checks - configure it to use EC2 status only. Does this help?  This probably leaves unhealthy machines but then you can FORCE a deployment through to fix them. (In CodeDeploy find the last failed deployment and simply using "Retry Deployment")
+There is an Application Load Balancer (ALB) with health checks pointed to an Auto Scaling Group (ASG) that contains a Dynamic Scaling Policy (50% CPU, 2 minimum instances.)
 
-If troubleshooting bootstrapping issues, be sure to disable the automatic scaling policy (50% CPU) - because machines shutting down will cause CodeDeploy failures that look mysterious.
+This means, while you are troubleshooting machines may be terminated by either the ELB or the ASG.  Therefore if you are experiencing health problems do the following so you can better reason about any behavior you are seeing:
+
+1) Temporarily disable the ELB health checks by editing the ASG in Console. EC2 health checks are required, but ELB are optional. There is a generous 10 minute grace period for health checks specified in the compute.yaml template, but it is still better to disable this.
+2) Temporarily disable the Dynamic Scaling policy by editing the ASG in Console.
+
+Consider also that to have the application up and running and listening on Port 3000 (and therefore able to pass a health check):
+
+1. The EC2 User Data must run successfully to ensure prerequisites are in place
+2. The CodeDeploy agent must be running on the machine. Machine must be able to talk to CodeDeploy (typically via Internet)
+3. A Deployment must have executed successfully.
+
+## Troubleshooting User Data failures
+
+The EC2 User Data (see compute.yaml) must execute successfully on launch.
+
+    * Use Session Manager to check:
+        * /var/log/cloud-init.log
+        * /var/log/cloud-init-output.log
+
+    Look for any indications that User Data didn't run to completion.   
+
+    You may see IMDSv2 throttling messages that come from the cloud-init process. I don't know how to fix that.
+
+    Look for indications that the machine may have been terminated by something (ELB Healthcheck, ASG scale-in, Rebooting for patches) before it was done. 
+
+    On linux, you can run the "last" command to see reboot history. Sometimes patches require a reboot.
+
+    ### Why don't we ? 
+
+    Why don't we use cfn-init/cfn-signal to fail the stack if a machine doesn't get healthy? THat only helps on initial launch. These User Data problems can also occur during scale out.
+
+    Why don't we just build a custom AMI with all the pre-reqs on it? That's a lot of work to stay on top of patching... probably too much ongoing work for a trainer (But that would eliminate these issues)  
+
+## CodeDeploy agent not running
+
+    Run :
+    ```
+    systemctl status codedeploy 
+    ```
+    If it's not in Active status, check the codedeploy logs: https://docs.aws.amazon.com/codedeploy/latest/userguide/deployments-view-logs.html
+
+    Other things:
+    
+    Is the machine in a Public subnet with a public IP? It has to be able to talk to the CodeDeploy AWS APIs.
+
+## CodeDeploy deployment failing.
+
+Go to the CodeDeploy console -> "Deployments"
+
+Look for errors.
+
+Which stage/hook are the failures occurring in?
+
+Are all the pre-requisites available? (run "node -v")
+
 
 # Uninstall
 
@@ -166,7 +223,7 @@ The 01-repo.sh script will pull down the latest A-New-Startup app code and UI Te
 
 97-pull-base-image.sh is called by another shell file to "cache" the Selenium/Headless Chrome image in a private ECR repo. 
 
-If you attempt to pull that particular container image from docker.io - you WILL get throttled at random times - and that's not good for demos!
+If you attempt to pull that particular container image from DockerHub/docker.io - you WILL get throttled at random times - and that's not good for demos!
 
 # A Warning
 
@@ -189,5 +246,3 @@ HOSTED_ZONE_ID="ABC1233FJJB"
 ```
 
 You will then be able to access the app via: https://app.example.com - and it will have a valid TLS certificate.
-
-

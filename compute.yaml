@@ -19,7 +19,7 @@ Parameters:
   InstanceType:
     Type: String
     # t3 have unlimited bursting. This demo works better if it doesn't take forever for all the setup to happen...
-    # so be careful if you use a smaller size.
+    # ... so be careful if you use a smaller size.
     Default: "t3.large"
     AllowedValues: ["t2.micro", "t3.micro", "t2.small", "t3.small", "t3.medium", "t3.large", "t3.xlarge"]
     Description: "Enter instance type to use. Default is t3.large"
@@ -147,17 +147,19 @@ Resources:
           Fn::Base64: !Sub | 
             #!/bin/bash -xe
             #
-            # CodeDeploy Agent and other pre-reqs install
+            # Install pre-requisites for CodeDeploy, and other necessary things
+            # October 2023:
+            # I have found on AL2023 that any "dnf install" command is prone to fail randomly with:
+            # [Errno 2] No such file or directory: '/var/cache/dnf/amazonlinux-1a4296c84a720383/....
+            # Therefore, we use this simple technique when isntalling all required packages.
+            # The while loop will execute repeatedly until a success happens
+            # (If the machine never gets healthy the ELB Health Check will terminate it)
             #
             while ! dnf install -y wget; do dnf clean packages; sleep 15; done
             while ! dnf install -y jq; do dnf clean packages; sleep 15; done
+            while ! dnf install -y stress; do dnf clean packages; sleep 15; done
             #
-            # October 2023:
-            # ruby install tends to fail frequently (AL2023) with:
-            # [Errno 2] No such file or directory: '/var/cache/dnf/amazonlinux-1a4296c84a720383/packages/ruby3.2-rubygem-psych-5.0.1-180.amzn2023.0.2.x86_64.rpm'
-            # If it failed, try again, after a short sleep
-            # We MUST have ruby. Or codedeploy isn't gonna work
-            # This will keep looping until it works
+            # Ruby needed for CodeDeploy
             while ! dnf install -y ruby; do dnf clean packages; sleep 15; done
             #
             # Get IMDSv2 token
@@ -175,17 +177,16 @@ Resources:
             # Install XRay
             #
             curl https://s3.us-east-2.amazonaws.com/aws-xray-assets.us-east-2/xray-daemon/aws-xray-daemon-3.x.rpm -o /home/ec2-user/xray.rpm
-            dnf install -y /home/ec2-user/xray.rpm
+            while ! dnf install -y /home/ec2-user/xray.rpm; do dnf clean packages; sleep 15; done
             systemctl enable xray
             systemctl start xray
             systemctl status xray
             #
-            # Install CloudWatch agent - use SSM document later to configure
-            # This fails intermittently on AL2023 (2023-08-26)
+            # Install CloudWatch agent - You can use SSM document later to configure (if you want to)
             while ! dnf install -y amazon-cloudwatch-agent; do dnf clean packages; sleep 15; done
             #
             # Install CodeDeploy Agent
-            # We'll use this to install our app later when pipeline runs.
+            # We'll use this to install our app later when the CI/CD pipeline runs.
             # Install this last to minimize conflicts with packages being installed by UserData while CodeDeploy is trying also
             #
             cd /home/ec2-user
@@ -223,6 +224,7 @@ Resources:
         # If you update the stack later it would update the version used.
         Version: !GetAtt LaunchTemplate.LatestVersionNumber
   
+  # Default scaling policy - 50% CPU utilization
   ScalingPolicy:
     Type: AWS::AutoScaling::ScalingPolicy
     Properties:
@@ -345,7 +347,7 @@ Resources:
             Action:
               - 'sts:AssumeRole'
       ManagedPolicyArns:
-        # Use this Managed Policy so we can use SSM
+        # Use this Managed Policy so we can use SSM - Session Manager, Patch Manager, etc.
         - "arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore"
         # CloudWatch Agent policy 
         - "arn:aws:iam::aws:policy/CloudWatchAgentServerPolicy"

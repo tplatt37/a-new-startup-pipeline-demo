@@ -176,6 +176,8 @@ The EC2 User Data (see compute.yaml) must execute successfully on launch.
 
     Lastly, consider that it's better (for a demo and in the real world) for the setup steps to happen as quickly as possible. Therefore we default to a t3.large with unlimited bursting. Using a t2.micro will give you zero burst credits to start - and it's going to be very busy with all these installs. Therefore I don't recommend using a machine that small.
 
+    Less common, but not impossible, is that the EC2 instance has failed an EC2 status check (hardware failure). If that is the case, Terminate the instance. The ASG will replace it.
+
     ### Why don't we ? 
 
     Why don't we use cfn-init/cfn-signal to fail the stack if a machine doesn't complete user-data successfully? cfn-init/cfn-signal is not a bad idea.  But tHat only helps on initial launch. These User Data problems can also occur during ASG scale out. Secondly, I am trying to limit complexity because this is a TRAINER DEMO and not a real-world app.  (a cfn-signal FAILURE signal will cause stack rollback by default and therefore erase all the evidence.)

@@ -138,13 +138,13 @@ To stress 1 CPU for 10 minutes.  That will trigger the autoscaling rule.   (If y
 
 # Troubleshooting 
 
-UPDATE: Currently the Amazon Linux 2023 AMI is used instead, because of the deterministic updates this problem should go away (2023-08-26)
+UPDATE: Currently the Amazon Linux 2023 AMI is used instead, because of the deterministic updates this problem should happen less frequently (2023-08-26)
 
 When there are patches outstanding for the Amazon Linux 2 AMI, SSM will force a reboot of the machine very shortly after launching.  This can be confirmed using the "last" command. Unfortunately, this can interrupt the CodeDeploy Agent while it is still running.    This also has the unfortunate side effect that Target Group Health Checks will keep failing, over and over and over, spinning up lots of short-lived machines.
 
 You can try turning OFF the ASG ALB health checks - configure it to use EC2 status only. Does this help?  This probably leaves unhealthy machines but then you can FORCE a deployment through to fix them. (In CodeDeploy find the last failed deployment and simply using "Retry Deployment")
 
-
+If troubleshooting bootstrapping issues, be sure to disable the automatic scaling policy (50% CPU) - because machines shutting down will cause CodeDeploy failures that look mysterious.
 
 # Uninstall
 

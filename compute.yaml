@@ -162,17 +162,6 @@ Resources:
             # Figure out what region we are running in
             REGION=$(curl -H "X-aws-ec2-metadata-token: $TOKEN" -s 169.254.169.254/latest/dynamic/instance-identity/document | jq -r ".region")
             #
-            # Install CodeDeploy Agent
-            # We'll use this to install our app later when pipeline runs.
-            #
-            cd /home/ec2-user
-            URL="https://aws-codedeploy-$REGION.s3.$REGION.amazonaws.com/latest/install"
-            wget $URL
-            chmod +x ./install
-            ./install auto
-            service codedeploy-agent start
-            service codedeploy-agent status
-            #
             # Install NodeJS 18
             #
             dnf install https://rpm.nodesource.com/pub_18.x/nodistro/repo/nodesource-release-nodistro-1.noarch.rpm -y
@@ -189,8 +178,20 @@ Resources:
             systemctl status xray
             #
             # Install CloudWatch agent - use SSM document later to configure
-            # This is LAST because it fails intermittently on AL2023 (2023-08-26)
+            # This fails intermittently on AL2023 (2023-08-26)
             dnf install -y amazon-cloudwatch-agent
+            #
+            # Install CodeDeploy Agent
+            # We'll use this to install our app later when pipeline runs.
+            # Install this last to minimize conflicts with packages being installed by UserData while CodeDeploy is trying also
+            #
+            cd /home/ec2-user
+            URL="https://aws-codedeploy-$REGION.s3.$REGION.amazonaws.com/latest/install"
+            wget $URL
+            chmod +x ./install
+            ./install auto
+            service codedeploy-agent start
+            service codedeploy-agent status
 
   AutoScalingGroup:
     Type: AWS::AutoScaling::AutoScalingGroup

@@ -188,13 +188,13 @@ The EC2 User Data (see compute.yaml) must execute successfully on launch.
 
     Run :
     ```
-    systemctl status codedeploy 
+    systemctl status codedeploy-agent 
     ```
     If it's not in Active status, check the codedeploy logs: https://docs.aws.amazon.com/codedeploy/latest/userguide/deployments-view-logs.html
 
     Other things:
     
-    Is the machine in a Public subnet with a public IP? It has to be able to talk to the CodeDeploy AWS APIs.
+    Is the machine in a Public subnet with a public IP? It has to be able to talk to the CodeDeploy AWS APIs (and to download from S3 private bucket).
 
 ## CodeDeploy deployment failing.
 

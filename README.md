@@ -100,6 +100,11 @@ git push
 ```
 The pipeline should then kick off with the latest commit.
 
+# Scale Out Demo
+
+If you increase the DESIRED CAPACITY of the ASG, the new instances will have the latest application - courtesy of CodeDeploy.  You can observe these deployments in the CodeDeploy console
+
+Please note however, that the Dynamic Scaling Policy will scale the ASG back in to a minimum of 2 instances (based on 50% CPU utilization target).
 
 # Then what? 
 

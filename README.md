@@ -167,41 +167,41 @@ Consider also that to have the application up and running and listening on Port 
 
 The EC2 User Data (see compute.yaml) must execute successfully on launch.
 
-    * Use Session Manager to check:
-        * /var/log/cloud-init.log
-        * /var/log/cloud-init-output.log
+Use Session Manager to check:
+* /var/log/cloud-init.log
+* /var/log/cloud-init-output.log
 
-    Look for any indications that User Data didn't run to completion.   
+Look for any indications that User Data didn't run to completion.   
 
-    You may see IMDSv2 throttling messages that come from the cloud-init process. I don't know how to fix that.
+You may see IMDSv2 throttling messages that come from the cloud-init process. I don't know how to fix that.
 
-    Look for indications that the machine may have been terminated by something (ELB Healthcheck, ASG scale-in, Rebooting for patches) before it was done. 
+Look for indications that the machine may have been terminated by something (ELB Healthcheck, ASG scale-in, Rebooting for patches) before it was done. 
 
-    On linux, you can run the "last" command to see reboot history. Sometimes patches require a reboot.  A reboot can and will stop User Data or CodeDeploy from completing successfully.  This project uses Amazon Linux 2023 specifically because the patching is deterministic and results in less frequent patching reboots (as compared to AL2).
+On linux, you can run the "last" command to see reboot history. Sometimes patches require a reboot.  A reboot can and will stop User Data or CodeDeploy from completing successfully.  This project uses Amazon Linux 2023 specifically because the patching is deterministic and results in less frequent patching reboots (as compared to AL2).
 
-    Lastly, consider that it's better (for a demo and in the real world) for the setup steps to happen as quickly as possible. Therefore we default to a t3.large with unlimited bursting. Using a t2.micro will give you zero burst credits to start - and it's going to be very busy with all these installs. Therefore I don't recommend using a machine that small.
+Lastly, consider that it's better (for a demo and in the real world) for the setup steps to happen as quickly as possible. Therefore we default to a t3.large with unlimited bursting. Using a t2.micro will give you zero burst credits to start - and it's going to be very busy with all these installs. Therefore I don't recommend using a machine that small.
 
-    Less common, but not impossible, is that the EC2 instance has failed an EC2 status check (hardware failure). If that is the case, Terminate the instance. The ASG will replace it.
+Less common, but not impossible, is that the EC2 instance has failed an EC2 status check (hardware failure). If that is the case, Terminate the instance. The ASG will replace it.
 
-    ### Why don't we ? 
+### Why don't we ? 
 
-    Why don't we use cfn-init/cfn-signal to fail the stack if a machine doesn't complete user-data successfully? cfn-init/cfn-signal is not a bad idea.  But tHat only helps on initial launch. These User Data problems can also occur during ASG scale out. Secondly, I am trying to limit complexity because this is a TRAINER DEMO and not a real-world app.  (a cfn-signal FAILURE signal will cause stack rollback by default and therefore erase all the evidence.)
+Why don't we use cfn-init/cfn-signal to fail the stack if a machine doesn't complete user-data successfully? cfn-init/cfn-signal is not a bad idea.  But tHat only helps on initial launch. These User Data problems can also occur during ASG scale out. Secondly, I am trying to limit complexity because this is a TRAINER DEMO and not a real-world app.  (a cfn-signal FAILURE signal will cause stack rollback by default and therefore erase all the evidence.)
 
-    Why don't we just build a custom AMI with all the pre-reqs on it? That's a lot of work to stay on top of patching... probably too much ongoing work for a trainer (But that would largely eliminate these issues)  
+Why don't we just build a custom AMI with all the pre-reqs on it? That's a lot of work to stay on top of patching... probably too much ongoing work for a trainer (But that would largely eliminate these issues)  
 
 ## CodeDeploy agent not running
 
-    Did the User Data run to completion? Starting codedeploy agent is the last thing it does.
+Did the User Data run to completion? Starting codedeploy agent is the last thing it does.
 
-    Run :
-    ```
-    systemctl status codedeploy-agent 
-    ```
-    If it's not in Active status, check the codedeploy logs: https://docs.aws.amazon.com/codedeploy/latest/userguide/deployments-view-logs.html
+Run :
+```
+systemctl status codedeploy-agent 
+```
+If it's not in Active status, check the codedeploy logs: https://docs.aws.amazon.com/codedeploy/latest/userguide/deployments-view-logs.html
 
-    Other things:
-    
-    Is the machine in a Public subnet with a public IP? It has to be able to talk to the CodeDeploy AWS APIs (and to download from S3 private bucket).
+Other things:
+
+Is the machine in a Public subnet with a public IP? It has to be able to talk to the CodeDeploy AWS APIs (and to download from S3 private bucket).
 
 ## CodeDeploy deployment failing.
 

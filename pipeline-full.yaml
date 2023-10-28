@@ -1,5 +1,6 @@
 AWSTemplateFormatVersion: '2010-09-09'
-Description: A-New-Startup - EC2 - Full Pipeline including backend resources
+Description: >-
+  a-new-startup : EC2 - Full Pipeline including backend resources
 
 Parameters:
   Prefix:

@@ -1,5 +1,6 @@
 AWSTemplateFormatVersion: '2010-09-09'
-Description: A-New-Startup - Sets up the frontend layer of the app - An ALB in front of an ASG of Amazon Linux 2 EC2 instances.
+Description: >-
+  a-new-startup : Sets up the frontend layer of the app - An ALB in front of an ASG of Amazon Linux 2 EC2 instances.
 
 Parameters:
 

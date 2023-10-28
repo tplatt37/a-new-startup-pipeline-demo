@@ -1,5 +1,6 @@
 AWSTemplateFormatVersion: '2010-09-09'
-Description: A-New-Startup app - CodeCommit repos and ECR Repos used by the CI/CD Pipeline
+Description: >-
+  a-new-startup : CodeCommit repos and ECR Repos used by the CI/CD Pipeline
 
 Parameters:
 

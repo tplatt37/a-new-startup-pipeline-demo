@@ -1,5 +1,6 @@
 AWSTemplateFormatVersion: '2010-09-09'
-Description: "A-New-Startup - Sets up the DynamoDB database, SNS Topic, SQS Queue, SSM parameters and some IAM things for a-new-startup"
+Description: >-
+  a-new-startup : Sets up the DynamoDB database, SNS Topic, SQS Queue, SSM parameters and some IAM things for a-new-startup"
 #
 # The resources created here will have dynamic and unique names.
 # If you want static names for a local build - use template-static-names.yaml instead.

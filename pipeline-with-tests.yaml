@@ -1,5 +1,6 @@
 AWSTemplateFormatVersion: '2010-09-09'
-Description: A-New-Startup - Sets up the CI/CD Pipeline
+Description: >-
+  a-new-startup : Sets up the CI/CD Pipeline (with tests)
 
 Resources:
   # This is a more complicated (and slower) pipeline that includes UI testing after deployment.

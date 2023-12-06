@@ -140,10 +140,10 @@ The instances have "stress" pre-installed - you can use SSM Command Document to 
 
 Use "Run Command" in SSM with the AWS-RunShellScript option:
 ```
-stress --cpu 1 --timeout 600s
+stress --cpu 2 --timeout 1200s
 ```
 
-To stress 1 CPU for 10 minutes.  That will trigger the autoscaling rule.   (If you change machine types, use a higher value for --cpu)
+To stress 2 CPU for 20 minutes.  That will trigger the autoscaling rule.   (If you change machine types, use a higher value for --cpu)
 
 # Troubleshooting 
 

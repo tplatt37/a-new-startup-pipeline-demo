@@ -137,6 +137,8 @@ If you run this command, it will create the full pipeline.
 The ASG has a Dynamic Scaling Policy - Target Tracking of 50% CPU.
 
 The instances have "stress" pre-installed - you can use SSM Command Document to run:
+
+Use "Run Command" in SSM with the AWS-RunShellScript option:
 ```
 stress --cpu 1 --timeout 600s
 ```

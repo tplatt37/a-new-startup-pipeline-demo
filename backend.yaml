@@ -154,20 +154,21 @@ Resources:
               - !Ref Environment
               - "AmazonCloudWatch-AgentConfig"
       Type: String
+      # See: https://docs.aws.amazon.com/AmazonCloudWatch/latest/monitoring/CloudWatch-Agent-Configuration-File-Details.html
       Value: |
         {
           "agent": {
             "metrics_collection_interval": 15,
             "run_as_user": "root"
-        },
-        "metrics": {
-          "namespace": "A-New-Startup",
-        "append_dimensions":{
-                "AutoScalingGroupName":"${!aws:AutoScalingGroupName}",
-                "ImageId":"${!aws:ImageId}",
-                "InstanceId":"${!aws:InstanceId}",
-                "InstanceType":"${!aws:InstanceType}"
-              },
+          },
+          "metrics": {
+            "namespace": "A-New-Startup",
+            "append_dimensions": {
+              "AutoScalingGroupName": "${!aws:AutoScalingGroupName}",
+              "ImageId": "${!aws:ImageId}",
+              "InstanceId": "${!aws:InstanceId}",
+              "InstanceType": "${!aws:InstanceType}"
+            },
             "metrics_collected": {
               "netstat": {
                 "measurement": [
@@ -177,15 +178,32 @@ Resources:
                 ],
                 "metrics_collection_interval": 60
               },
-            "mem": {
-              "measurement": [
-              "mem_used_percent"
-              ],
-              "metrics_collection_interval": 15
+              "mem": {
+                "measurement": [
+                  "mem_used_percent"
+                ],
+                "metrics_collection_interval": 15
+              },
+              "disk": {
+                "measurement": [
+                  "used_percent"
+                ],
+                "resources": [
+                  "*"
+                ],
+                "drop_device": true
+              },
+              "processes": {
+                "measurement": [
+                  "running",
+                  "sleeping",
+                  "dead"
+                ]
+              }
             }
           }
-          }
         }
+
       Tags:
         demo: a-new-startup
 

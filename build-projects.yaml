@@ -267,7 +267,7 @@ Resources:
       MetricTransformations: 
         - 
           MetricValue: "1"
-          MetricNamespace: "A-New-Startup/Builds"
+          MetricNamespace: "A-New-Startup"
           MetricName: "SuccessfulBuilds"
           Unit: Count
             

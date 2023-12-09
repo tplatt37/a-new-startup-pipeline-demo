@@ -161,16 +161,28 @@ Resources:
             "run_as_user": "root"
         },
         "metrics": {
-          "namespace": "MemoryUsage",
-          "append_dimensions":{ 
-            "InstanceId":"${aws:InstanceId}"},
+          "namespace": "A-New-Startup",
+        "append_dimensions":{
+                "AutoScalingGroupName":"${!aws:AutoScalingGroupName}",
+                "ImageId":"${!aws:ImageId}",
+                "InstanceId":"${!aws:InstanceId}",
+                "InstanceType":"${!aws:InstanceType}"
+              },
             "metrics_collected": {
-             "mem": {
+              "netstat": {
+                "measurement": [
+                  "tcp_established",
+                  "tcp_syn_sent",
+                  "tcp_close"
+                ],
+                "metrics_collection_interval": 60
+              },
+            "mem": {
               "measurement": [
-               "mem_used_percent"
+              "mem_used_percent"
               ],
               "metrics_collection_interval": 15
-             }
+            }
           }
           }
         }

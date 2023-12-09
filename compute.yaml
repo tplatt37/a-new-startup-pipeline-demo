@@ -184,8 +184,8 @@ Resources:
             #
             # Install CloudWatch agent - You can use SSM document later to configure (if you want to)
             while ! dnf install -y amazon-cloudwatch-agent; do dnf clean packages; sleep 15; done
-            systemctl enable amazon-cloudwatch-agent
-            systemctl status amazon-cloudwatch-agent
+            # CloudWatch agent is installed, but not running. Set the config before you start it.
+            # See 08-configure-cloudwatch.sh
             #
             # Install CodeDeploy Agent
             # We'll use this to install our app later when the CI/CD pipeline runs.

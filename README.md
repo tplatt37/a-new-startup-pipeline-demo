@@ -145,6 +145,15 @@ stress --cpu 2 --timeout 1200s
 
 To stress 2 CPU for 20 minutes.  That will trigger the autoscaling rule.   (If you change machine types, use a higher value for --cpu)
 
+# CloudWatch Agent
+
+Activate CloudWatch agent by running:
+```
+./08-configure-cloudwatch.sh
+```
+
+The above retrieves a configuration from an SSM Parameter that will cause the agent to send "mem_used_percent" up to CloudWatch - this is a metric you won't have access to otherwise!
+
 # Troubleshooting 
 
 ## EC2 Instances Failing Health Checks 

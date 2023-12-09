@@ -175,16 +175,17 @@ Resources:
             npm -v
             node -v
             #
-            # Install XRay
+            # Install XRay - latest 3.x release
             #
-            curl https://s3.us-east-2.amazonaws.com/aws-xray-assets.us-east-2/xray-daemon/aws-xray-daemon-3.x.rpm -o /home/ec2-user/xray.rpm
+            curl https://s3.$REGION.amazonaws.com/aws-xray-assets.$REGION/xray-daemon/aws-xray-daemon-3.x.rpm -o /home/ec2-user/xray.rpm
             while ! dnf install -y /home/ec2-user/xray.rpm; do dnf clean packages; sleep 15; done
             systemctl enable xray
-            systemctl start xray
             systemctl status xray
             #
             # Install CloudWatch agent - You can use SSM document later to configure (if you want to)
             while ! dnf install -y amazon-cloudwatch-agent; do dnf clean packages; sleep 15; done
+            systemctl enable amazon-cloudwatch-agent
+            systemctl status amazon-cloudwatch-agent
             #
             # Install CodeDeploy Agent
             # We'll use this to install our app later when the CI/CD pipeline runs.

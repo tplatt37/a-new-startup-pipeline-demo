@@ -138,7 +138,7 @@ Resources:
         demo: a-new-startup
 
   #
-  # This is an OPTIONAL custom metric configuration (memory used)
+  # This is an OPTIONAL custom metric configuration (memory used) (and logs)
   # You'll need to run 08-configure-cloudwatch.sh AFTER installing...
   # See that sh for details.
   #
@@ -160,6 +160,18 @@ Resources:
           "agent": {
             "metrics_collection_interval": 15,
             "run_as_user": "root"
+          },
+          "logs": {
+            "logs_collected": {
+              "files": {
+                "collect_list": [
+                  {
+                    "file_path": "/home/ec2-user/node-website/src/a-new-startup-debug.log",
+                    "log_group_name": "a-new-startup"
+                  }
+                ]
+              }
+            }
           },
           "metrics": {
             "namespace": "A-New-Startup",
@@ -203,7 +215,6 @@ Resources:
             }
           }
         }
-
       Tags:
         demo: a-new-startup
 

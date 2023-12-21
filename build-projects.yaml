@@ -46,11 +46,13 @@ Resources:
         Artifacts:
             Type: CODEPIPELINE
         Environment:
-            ComputeType: BUILD_GENERAL1_SMALL
-            # Ubuntu with NodeJS 18
-            Image: aws/codebuild/standard:7.0
+            # Use the Lambda environment for this build for fast, efficient compute
+            # REF: https://docs.aws.amazon.com/en_us/codebuild/latest/userguide/lambda.html
+            ComputeType: BUILD_LAMBDA_2GB
+            # Lambda build environment
+            Image: aws/codebuild/amazonlinux-x86_64-lambda-standard:nodejs18
             PrivilegedMode: false
-            Type: LINUX_CONTAINER
+            Type: LINUX_LAMBDA_CONTAINER
             EnvironmentVariables:
             - Name: BUCKET_NAME
               Type: PLAINTEXT

@@ -170,7 +170,9 @@ Resources:
             #
             # Install NodeJS 18
             #
-            while ! dnf install https://rpm.nodesource.com/pub_18.x/nodistro/repo/nodesource-release-nodistro-1.noarch.rpm -y; do dnf clean packages; sleep 15; done
+            # Needed as per (2024-02-05): https://github.com/nodesource/distributions/issues/1740
+            curl -fsSL https://rpm.nodesource.com/setup_18.x | bash -
+            # while ! dnf install https://rpm.nodesource.com/pub_18.x/nodistro/repo/nodesource-release-nodistro-1.noarch.rpm -y; do dnf clean packages; sleep 15; done
             while ! dnf install -y nodejs; do dnf clean packages; sleep 15; done
             npm -v
             node -v

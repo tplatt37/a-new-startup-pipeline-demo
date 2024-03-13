@@ -152,7 +152,7 @@ Resources:
             # October 2023:
             # I have found on AL2023 that any "dnf install" command is prone to fail randomly with:
             # [Errno 2] No such file or directory: '/var/cache/dnf/amazonlinux-1a4296c84a720383/....
-            # Therefore, we use this simple technique when isntalling all required packages.
+            # Therefore, we use this simple technique when installing all required packages.
             # The while loop will execute repeatedly until a success happens
             # (If the machine never gets healthy the ELB Health Check will terminate it)
             #

@@ -339,7 +339,9 @@ Resources:
     Type: AWS::IAM::Role
     # The Role to be used by the EC2 instance - includes application permissions and SSM
     Properties:
-      # NOTE: No RoleName specified, because IAM names are cross-region. We need it to be uniquely named.
+      # NOTE: Using a static name that utilizes the region - so it is easy to list this in a pre-existing KMS key for SSM Session Log encryption
+      # This means we can't install more than once per region.
+      RoleName: !Sub 'a-new-startup-InstanceProfileRole-${AWS::Region}'
       Description: Role for EC2 Instance Profile for A-New-Startup
       AssumeRolePolicyDocument:
         Version: "2012-10-17"

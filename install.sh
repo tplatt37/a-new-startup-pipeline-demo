@@ -25,6 +25,10 @@ fi
 # Used in naming some of the cfn Exports.
 PREFIX=a-new-startup
 
+REGION=${AWS_DEFAULT_REGION:-$(aws configure get default.region)}
+echo "Creating in $REGION..."
+
+
 # Must pass in an s3 bucket (private) where the source code zip can be stored...
 if [ -z $1 ]; then
         echo "Need the S3 Bucket Name as a parameter. Exiting..."
@@ -49,6 +53,12 @@ else
         MY_IP=$(curl -s checkip.amazonaws.com)
 fi
 echo "MY_IP=$MY_IP"
+
+
+# jq -r option for raw output with no double quotes
+CODEBUILD_IPS=$(curl -s https://raw.githubusercontent.com/joetek/aws-ip-ranges-json/master/ip-ranges-codebuild.json | jq -r '.prefixes[] | select(.region == "'"$REGION"'") | .ip_prefix' | paste -sd ",")
+echo "CODEBUILD_IPS=$CODEBUILD_IPS"
+
 
 #
 # DomainName and HostedZoneId are OPTIONAL
@@ -75,9 +85,6 @@ fi
 
 echo "DOMAIN_NAME=$DOMAIN_NAME"
 echo "HOSTED_ZONE_ID=$HOSTED_ZONE_ID"
-
-REGION=${AWS_DEFAULT_REGION:-$(aws configure get default.region)}
-echo "Creating in $REGION..."
 
 echo "Validating VPC and Subnets..."
 SUBNETS=$(echo $SUBNETS_COMMADELIMITED | sed 's/,/ /g')
@@ -117,9 +124,9 @@ fi
 echo "Creating compute layer..."
 STACK_NAME=$PREFIX-compute
 if [ ! -z $DOMAIN_NAME ]; then
-        ./03-compute.sh $SUBNETS_COMMADELIMITED $MY_IP $DOMAIN_NAME $HOSTED_ZONE_ID
+        ./03-compute.sh $SUBNETS_COMMADELIMITED $MY_IP,$CODEBUILD_IPS $DOMAIN_NAME $HOSTED_ZONE_ID
 else
-        ./03-compute.sh $SUBNETS_COMMADELIMITED $MY_IP
+        ./03-compute.sh $SUBNETS_COMMADELIMITED $MY_IP,$CODEBUILD_IPS
 fi
 aws cloudformation wait stack-exists --stack-name $STACK_NAME
 STACK_STATUS=$(aws cloudformation describe-stacks --stack-name $STACK_NAME --query "Stacks[].StackStatus" --output text)

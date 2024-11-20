@@ -25,10 +25,13 @@ Parameters:
     AllowedValues: ["t2.micro", "t3.micro", "t2.small", "t3.small", "t3.medium", "t3.large", "t3.xlarge"]
     Description: "Enter instance type to use. Default is t3.large"
   
-  IpRangeForAccess:
-    Type: String
+  IpRangesForAccess:
+    Type: CommaDelimitedList
     # Don't leave EC2 IPs open to the Internet
-    Default: "1.1.1.1/32"
+    # This is expected to be a comma separated list of FOUR IPs:
+    # Your IP (from where you will demo), and the 3 CodeBuild IP ranges
+    # (If you use the test pipeline, CodeBuild needs access to hit the web app for system testing)
+    Default: "1.1.1.1/32,2.2.2.2/32,3.3.3.3/32,4.4.4.4/32"
 
   Prefix:
     Type: String
@@ -75,7 +78,12 @@ Resources:
     Properties:
       GroupDescription: "Security group for a-new-startup application EC2 instances"
       SecurityGroupIngress:
-        - CidrIp: !Ref IpRangeForAccess
+
+        # NOTE: Same rule repeated 4 times for the 4 IP ranges that you *MUST* 
+        # specify : Your IP, and three CodeBuild IP ranges.
+        # CodeBuild environments need access to run tests.
+
+        - CidrIp: !Select [0, !Ref IpRangesForAccess]
           FromPort: !If
             - UseHTTPS
             - 443
@@ -88,10 +96,65 @@ Resources:
           # NodeJS app is listening on port 3000
           # For debugging and demos, we want to demonstrate this without going via the ALB.
           # Which is why we put these in Public subnets ideally - for an easier demo.
-        - CidrIp: !Ref IpRangeForAccess
+        - CidrIp: !Select [0, !Ref IpRangesForAccess]
           FromPort: 3000
           ToPort: 3000
           IpProtocol: tcp
+
+        - CidrIp: !Select [1, !Ref IpRangesForAccess]
+          FromPort: !If
+            - UseHTTPS
+            - 443
+            - 80
+          ToPort: !If
+            - UseHTTPS
+            - 443
+            - 80
+          IpProtocol: tcp
+          # NodeJS app is listening on port 3000
+          # For debugging and demos, we want to demonstrate this without going via the ALB.
+          # Which is why we put these in Public subnets ideally - for an easier demo.
+        - CidrIp: !Select [1, !Ref IpRangesForAccess]
+          FromPort: 3000
+          ToPort: 3000
+          IpProtocol: tcp
+
+        - CidrIp: !Select [2, !Ref IpRangesForAccess]
+          FromPort: !If
+            - UseHTTPS
+            - 443
+            - 80
+          ToPort: !If
+            - UseHTTPS
+            - 443
+            - 80
+          IpProtocol: tcp
+          # NodeJS app is listening on port 3000
+          # For debugging and demos, we want to demonstrate this without going via the ALB.
+          # Which is why we put these in Public subnets ideally - for an easier demo.
+        - CidrIp: !Select [2, !Ref IpRangesForAccess]
+          FromPort: 3000
+          ToPort: 3000
+          IpProtocol: tcp
+
+        - CidrIp: !Select [3, !Ref IpRangesForAccess]
+          FromPort: !If
+            - UseHTTPS
+            - 443
+            - 80
+          ToPort: !If
+            - UseHTTPS
+            - 443
+            - 80
+          IpProtocol: tcp
+          # NodeJS app is listening on port 3000
+          # For debugging and demos, we want to demonstrate this without going via the ALB.
+          # Which is why we put these in Public subnets ideally - for an easier demo.
+        - CidrIp: !Select [3, !Ref IpRangesForAccess]
+          FromPort: 3000
+          ToPort: 3000
+          IpProtocol: tcp
+
       VpcId: !Ref VpcId
   
   # So the ALB can hit the EC2 instances on port 3000 (NodeJS)

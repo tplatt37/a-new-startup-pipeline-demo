@@ -5,15 +5,23 @@ if [ -z $1 ]; then
         exit 0
 fi
 
-# Optional - a DomainName and HostedZoneId as 3rd and 4th parameters
+# Optional - IP address to allowlist for access to the app.  if not provided, we use current IP
 if [ ! -z $2 ]; then
-        DOMAIN_NAME=$2
+        MY_IP=$2
+else
+        MY_IP=$(curl -s checkip.amazonaws.com)
+fi
+echo "My IP=$MY_IP"
+
+# Optional - a DomainName and HostedZoneId as 3rd and 4th parameters
+if [ ! -z $3 ]; then
+        DOMAIN_NAME=$3
 else
         DOMAIN_NAME="None"
 fi
 
-if [ ! -z $3 ]; then
-        HOSTED_ZONE_ID=$3
+if [ ! -z $4 ]; then
+        HOSTED_ZONE_ID=$4
 else
         HOSTED_ZONE_ID="None"
 fi
@@ -35,5 +43,5 @@ echo "VpcId=$VPC_ID"
 
 aws cloudformation deploy --template-file compute.yaml \
         --stack-name "$PREFIX-compute" \
-        --parameter-overrides VpcId=$VPC_ID Subnets=$1 DomainName=$DOMAIN_NAME HostedZoneId=$HOSTED_ZONE_ID \
+        --parameter-overrides VpcId=$VPC_ID Subnets=$1 IpRangeForAccess=$MY_IP DomainName=$DOMAIN_NAME HostedZoneId=$HOSTED_ZONE_ID \
         --capabilities CAPABILITY_NAMED_IAM

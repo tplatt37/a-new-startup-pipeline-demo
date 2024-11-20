@@ -24,6 +24,11 @@ Parameters:
     Default: "t3.large"
     AllowedValues: ["t2.micro", "t3.micro", "t2.small", "t3.small", "t3.medium", "t3.large", "t3.xlarge"]
     Description: "Enter instance type to use. Default is t3.large"
+  
+  IpRangeForAccess:
+    Type: String
+    # Don't leave EC2 IPs open to the Internet
+    Default: "1.1.1.1/32"
 
   Prefix:
     Type: String
@@ -70,7 +75,7 @@ Resources:
     Properties:
       GroupDescription: "Security group for a-new-startup application EC2 instances"
       SecurityGroupIngress:
-        - CidrIp: "0.0.0.0/0"
+        - CidrIp: !Ref IpRangeForAccess
           FromPort: !If
             - UseHTTPS
             - 443
@@ -83,7 +88,7 @@ Resources:
           # NodeJS app is listening on port 3000
           # For debugging and demos, we want to demonstrate this without going via the ALB.
           # Which is why we put these in Public subnets ideally - for an easier demo.
-        - CidrIp: "0.0.0.0/0"
+        - CidrIp: !Ref IpRangeForAccess
           FromPort: 3000
           ToPort: 3000
           IpProtocol: tcp
@@ -339,8 +344,7 @@ Resources:
     Type: AWS::IAM::Role
     # The Role to be used by the EC2 instance - includes application permissions and SSM
     Properties:
-      # NOTE: Using a static name that utilizes the region - so it is easy to list this in a pre-existing KMS key for SSM Session Log encryption
-      # This means we can't install more than once per region.
+      # Static name for simplicity - can only install once per region (which is enough)
       RoleName: !Sub 'a-new-startup-InstanceProfileRole-${AWS::Region}'
       Description: Role for EC2 Instance Profile for A-New-Startup
       AssumeRolePolicyDocument:

@@ -42,25 +42,33 @@ if [ -z $2 ]; then
 fi
 SUBNETS_COMMADELIMITED=$2
 
+# Optional - IP address to allowlist for access to the app.  if not provided, we use current IP
+if [ ! -z $3 ]; then
+        MY_IP=$3
+else
+        MY_IP=$(curl -s checkip.amazonaws.com)
+fi
+echo "MY_IP=$MY_IP"
+
 #
 # DomainName and HostedZoneId are OPTIONAL
 # If you supply these, a custom domain name and HTTPS/443 will be used.
 # The Domain MUST already exist in Route 53 as a Hosted Zone.
 # For example, if you want to use app.example.com, example.com must be a Hosted Zone.
 #
-if [ ! -z $3 -a -z $4 ]; then
+if [ ! -z $4 -a -z $5 ]; then
         echo "If you specify a DomainName you must also specify the HostedZoneId"
         exit 0
 fi
 
-if [ ! -z $3 ]; then
-        DOMAIN_NAME=$3
+if [ ! -z $4 ]; then
+        DOMAIN_NAME=$4
 else
         DOMAIN_NAME=""
 fi
 
-if [ ! -z $4 ]; then
-        HOSTED_ZONE_ID=$4
+if [ ! -z $5 ]; then
+        HOSTED_ZONE_ID=$5
 else
         HOSTED_ZONE_ID=""
 fi
@@ -109,9 +117,9 @@ fi
 echo "Creating compute layer..."
 STACK_NAME=$PREFIX-compute
 if [ ! -z $DOMAIN_NAME ]; then
-        ./03-compute.sh $SUBNETS_COMMADELIMITED $DOMAIN_NAME $HOSTED_ZONE_ID
+        ./03-compute.sh $SUBNETS_COMMADELIMITED $MY_IP $DOMAIN_NAME $HOSTED_ZONE_ID
 else
-        ./03-compute.sh $SUBNETS_COMMADELIMITED 
+        ./03-compute.sh $SUBNETS_COMMADELIMITED $MY_IP
 fi
 aws cloudformation wait stack-exists --stack-name $STACK_NAME
 STACK_STATUS=$(aws cloudformation describe-stacks --stack-name $STACK_NAME --query "Stacks[].StackStatus" --output text)

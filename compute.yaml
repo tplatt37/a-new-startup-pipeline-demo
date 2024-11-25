@@ -274,9 +274,9 @@ Resources:
     Properties:
       AutoScalingGroupName: "a-new-startup"
       VPCZoneIdentifier: !Ref Subnets
-      MinSize: 2
-      DesiredCapacity: 2
-      MaxSize: 8
+      MinSize: 6
+      DesiredCapacity: 6
+      MaxSize: 12 
       # Will use both EC2 and ELB health checks
       # Please note that this can cause issues if your instances are being patched as soon as they boot.
       # The reboot that SSM Patching does will interrupt the CodeDeploy process

@@ -6,7 +6,7 @@
 # (and you WILL get throttled...)
 #
 
-VERSION_TAG=97.0
+VERSION_TAG=131.0 # was 97.0 but that is now quite old.
 
 # Pull from docker hub.   
 # NOTE: We're pinning to a version we know will work

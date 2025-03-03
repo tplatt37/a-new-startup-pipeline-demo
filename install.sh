@@ -37,6 +37,7 @@ if [ -z $1 ]; then
         exit 0
 fi
 BUCKET=$1
+echo "BUCKET=$BUCKET"
 
 if [ -z $2 ]; then
         echo "Also need a comma delimited list of two Public subnet Ids. Exiting..."
@@ -45,6 +46,7 @@ if [ -z $2 ]; then
         exit 0
 fi
 SUBNETS_COMMADELIMITED=$2
+echo "SUBNETS_COMMADELIMITED=$SUBNETS_COMMADELIMITED"
 
 # Optional - IP address to allowlist for access to the app.  if not provided, we use current IP
 if [ ! -z $3 ]; then

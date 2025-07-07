@@ -26,4 +26,4 @@ echo "Configuring CloudWatch agent for demo:a-new-startup in $REGION..."
 # that means your parameter is BAD.   SendCommand certainly does support using --parameters!
 
 # NOTE: we are hardcoding prefix of "a-new-startup" and "dev"
-aws ssm send-command --document-name "AmazonCloudWatch-ManageAgent" --document-version "8" --targets '[{"Key":"tag:demo","Values":["a-new-startup"]}]' --parameters '{"action":["configure"],"mode":["ec2"],"optionalConfigurationSource":["ssm"],"optionalConfigurationLocation":["/a-new-startup/dev/AmazonCloudWatch-AgentConfig"],"optionalRestart":["yes"]}' --comment "No Comment" --timeout-seconds 600 --max-concurrency "50" --max-errors "0" --region $REGION
+aws ssm send-command --document-name "AmazonCloudWatch-ManageAgent" --targets '[{"Key":"tag:demo","Values":["a-new-startup"]}]' --parameters '{"action":["configure"],"mode":["ec2"],"optionalConfigurationSource":["ssm"],"optionalConfigurationLocation":["/a-new-startup/dev/AmazonCloudWatch-AgentConfig"],"optionalRestart":["yes"]}' --comment "No Comment" --timeout-seconds 600 --max-concurrency "50" --max-errors "0" --region $REGION

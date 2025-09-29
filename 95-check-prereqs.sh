@@ -8,7 +8,7 @@ EXIT_CODE=0
 echo "Checking for pre-requisites..."
 
 # Check AWS CLI version - must be v2.
-AWS_CLI_VERSION=$(aws --version | grep -Po '(?<=aws-cli/)\d')
+AWS_CLI_VERSION=$(aws --version | sed -n 's/.*aws-cli\/\([0-9]\).*/\1/p')
 if [[ $AWS_CLI_VERSION -lt 2 ]]; then
     echo "You must install AWS CLI v2 to use this script."
     echo "You should probably UNINSTALL AWS CLI V1: https://docs.aws.amazon.com/cli/v1/userguide/install-linux.html#install-linux-pip"
